@@ -1,0 +1,19 @@
+# docker-compose.dev.yml — DEVELOPMENT OVERRIDES
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+version: "3.8"
+
+services:
+  nutritrack:
+    volumes:
+      # Mount live source code — changes on host are instantly visible in container
+      - ./app.py:/app/app.py
+      - ./database.py:/app/database.py
+      - ./seed.py:/app/seed.py
+      - ./static:/app/static
+      - ./docs:/app/docs
+      # Keep the persistent data volume from the base compose
+      - nutritrack_data:/app/data
+    environment:
+      - NUTRITRACK_DEV_MODE=true
+    # Override CMD to enable auto-reload on Python file changes
+    command: python3 -m uvicorn app:app --host 0.0.0.0 --port 8000 --reload --reload-dir /app

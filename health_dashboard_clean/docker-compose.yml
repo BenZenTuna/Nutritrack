@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  nutritrack:
+    build: .
+    container_name: nutritrack
+    restart: unless-stopped
+    ports:
+      - "${NUTRITRACK_PORT:-8000}:8000"
+    volumes:
+      - nutritrack_data:/app/data
+    environment:
+      - NUTRITRACK_DB_PATH=/app/data/nutritrack.db
+      - NUTRITRACK_HOST=0.0.0.0
+      - NUTRITRACK_PORT=8000
+      - SEED_DEMO_DATA=${SEED_DEMO_DATA:-false}
+      - TZ=${TZ:-UTC}
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/profile')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  nutritrack_data:
+    driver: local

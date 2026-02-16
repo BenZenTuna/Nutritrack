@@ -6,7 +6,10 @@ import sqlite3
 import os
 from datetime import datetime, date, timedelta
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "nutritrack.db")
+DB_PATH = os.environ.get(
+    "NUTRITRACK_DB_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "nutritrack.db")
+)
 
 def get_db():
     """Get a database connection with row factory."""
