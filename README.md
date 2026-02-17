@@ -12,7 +12,9 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 
 ## Screenshots
 
-<!-- Add screenshots here -->
+| Overview | Charts | Health |
+|----------|--------|--------|
+| ![Overview](docs/screenshots/overview.png) | ![Charts](docs/screenshots/charts.png) | ![Health](docs/screenshots/health.png) |
 
 ## Features
 
