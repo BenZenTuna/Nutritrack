@@ -71,11 +71,11 @@ python3 seed.py
 
 ## Connect Your AI Agent
 
-NutriTrack exposes a full REST API that any LLM-based agent can call. Point your agent at `http://localhost:8000` and give it instructions like:
+NutriTrack exposes a full REST API that any LLM-based agent can call. Point your agent at `http://localhost:8000` and have it read the skill file:
 
-> You are a nutrition tracking assistant. When the user tells you what they ate, log it by calling POST /api/food with the meal name, estimated calories, protein, carbs, fat, and meal type. When they ask for a summary, call GET /api/daily-summary. Use the NutriTrack API at http://localhost:8000.
+**[`nutritrack.md`](nutritrack.md)** -- This is the agent skill file. It contains everything an AI agent needs to use NutriTrack: connection details, all API endpoints, calorie estimation guidelines, meal type rules, and response style instructions. Feed this file to your agent and it will know how to log food, exercise, weight, and health vitals on your behalf.
 
-For detailed agent setup instructions, prompt templates, and endpoint examples, see [docs/AGENT_README.md](docs/AGENT_README.md).
+For additional agent setup instructions and prompt templates, see [docs/AGENT_README.md](docs/AGENT_README.md).
 
 ## API Reference
 
