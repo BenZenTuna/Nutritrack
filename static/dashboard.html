@@ -33,8 +33,6 @@
         /* ─── Layout ─────────────────────────────────────────────── */
         .app-header { position: sticky; top: 0; z-index: 100; background: rgba(13, 15, 17, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid var(--border); padding: 0 clamp(0.5rem, 2vw, 2rem); }
         .header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
-        .logo { font-family: 'Space Mono', monospace; font-size: 1.2rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
-        .logo span { color: var(--text-dim); font-weight: 400; }
         
         .date-nav { display: flex; align-items: center; gap: 0.75rem; }
         .date-nav button { background: var(--surface); border: 1px solid var(--border); color: var(--text); width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1rem; display: grid; place-items: center; transition: all 0.15s; }
@@ -63,13 +61,13 @@
         .card-subtitle { font-size: 0.85rem; color: var(--text-dim); margin-top: 0.25rem; }
 
         /* ─── Progress Ring ──────────────────────────────────────── */
-        .calorie-ring-container { display: flex; align-items: center; gap: 1.5rem; }
-        .ring-svg { width: 120px; height: 120px; transform: rotate(-90deg); }
-        .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 10; }
-        .ring-progress { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
-        .ring-center { text-align: center; }
-        .ring-center .big-number { font-family: 'Space Mono', monospace; font-size: 1.8rem; font-weight: 700; }
-        .ring-center .label { font-size: 0.8rem; color: var(--text-dim); }
+        .calorie-ring-container { display: flex; align-items: center; gap: 1rem; }
+        .ring-svg { width: 64px; height: 64px; transform: rotate(-90deg); flex-shrink: 0; }
+        .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+        .ring-progress { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease; }
+        .ring-center { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+        .ring-center .big-number { font-family: 'Space Mono', monospace; font-size: 1.4rem; font-weight: 700; }
+        .ring-center .label { font-size: 0.78rem; color: var(--text-dim); }
 
         /* ─── Macro Bars ─────────────────────────────────────────── */
         .macro-bar-group { margin-bottom: 0.9rem; }
@@ -264,7 +262,9 @@
 
         /* Cards inner padding */
         .card { padding: 1rem; height: auto !important; }
-        .calorie-ring-container { flex-direction: column; align-items: center; }
+        .calorie-ring-container { flex-direction: row; align-items: center; }
+        .ring-svg { width: 52px; height: 52px; }
+        .ring-center .big-number { font-size: 1.2rem; }
 
         /* Tab panels — slight inner padding so text doesn't touch edges */
         .tab-panel { padding: 0; }
@@ -275,7 +275,6 @@
     <!-- Header -->
     <header class="app-header">
         <div class="header-inner">
-            <div class="logo">NUTRI<span>TRACK</span></div>
             <div class="date-nav">
                 <button onclick="changeDate(-1)" title="Previous day">‹</button>
                 <input type="date" id="dateSelector" onchange="onDateChange()">
@@ -287,32 +286,19 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- Gamification Panel -->
-        <div class="gamification-panel">
-            <div class="gam-col">
-                <h3 class="gam-header">Current Streak</h3>
-                <div class="gam-stat">
-                    <span id="streak-icon" style="font-size: 2.5rem;">🔥</span>
-                    <span id="streak-days" style="font-size: 2.5rem; font-weight: 700; color: var(--text);">0</span>
-                    <span style="color: var(--text-dim); font-weight: 500;">days under limit</span>
-                </div>
-            </div>
-            <div class="gam-divider"></div>
-            <div class="gam-col">
-                <h3 class="gam-header">Daily XP</h3>
-                <div class="gam-stat">
-                    <span style="font-size: 2.5rem; color: var(--accent);">⚡</span>
-                    <span id="daily-points" style="font-size: 2.5rem; font-weight: 700; color: var(--text);">0</span>
-                    <span style="color: var(--text-dim); font-weight: 500;">points</span>
-                </div>
-            </div>
-            <div class="gam-divider"></div>
-            <div class="gam-col">
-                 <h3 class="gam-header">Status</h3>
-                 <div id="status-badges" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                    <span class="badge" style="background: var(--surface2); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--text-dim);">No activity yet</span>
-                 </div>
-            </div>
+        <!-- Gamification Bar -->
+        <div class="gamification-bar" style="display: flex; align-items: center; padding: 6px 16px; background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; gap: 16px;">
+            <span style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                <span id="streak-icon" style="font-size: 1rem;">🔥</span>
+                <strong id="streak-days">0</strong>
+                <span style="color: var(--text-dim); font-size: 0.8rem;">day streak</span>
+            </span>
+            <span style="color: var(--border);">|</span>
+            <span style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
+                <span style="font-size: 1rem;">⚡</span>
+                <strong id="daily-points">0</strong>
+                <span style="color: var(--text-dim); font-size: 0.8rem;">XP</span>
+            </span>
         </div>
 
         <!-- Tabs -->
@@ -325,101 +311,72 @@
 
         <!-- ═══ OVERVIEW TAB ═══ -->
         <div class="tab-panel active" id="tab-overview">
-            <!-- Top metrics -->
-            <div class="grid-3">
-                <!-- Calorie Ring -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Calories Today</span>
-                    </div>
-                    <div class="calorie-ring-container">
-                        <svg class="ring-svg" viewBox="0 0 120 120">
-                            <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                            <circle class="ring-progress" id="calorieRing" cx="60" cy="60" r="50" stroke="var(--accent)" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
-                        </svg>
-                        <div class="ring-center">
-                            <div class="big-number" id="caloriesEaten">0</div>
-                            <div class="label">of <span id="calorieGoal">0</span> kcal</div>
-                            <div class="label" style="color:var(--accent);margin-top:4px;">
-                                <span id="caloriesRemaining">0</span> remaining
-                            </div>
-                        </div>
-                    </div>
+            <!-- 1. Macros -->
+            <div class="card" style="margin-bottom:1rem;">
+                <div class="card-header">
+                    <span class="card-title">Macros</span>
                 </div>
-
-                <!-- Macros -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Macros</span>
-                    </div>
-                    <div id="macroBars">
-                        <div class="macro-bar-group">
-                            <div class="macro-bar-label">
-                                <span class="name" style="color:var(--protein);">Protein</span>
-                                <span class="values"><span id="proteinVal">0</span> / <span id="proteinGoal">0</span>g</span>
-                            </div>
-                            <div class="macro-bar-track">
-                                <div class="macro-bar-fill" id="proteinBar" style="width:0%;background:var(--protein);"></div>
-                            </div>
+                <div id="macroBars">
+                    <div class="macro-bar-group">
+                        <div class="macro-bar-label">
+                            <span class="name" style="color:var(--protein);">Protein</span>
+                            <span class="values"><span id="status-protein" style="font-size:0.7rem;font-weight:600;margin-right:4px;"></span><span id="proteinVal">0</span>/<span id="proteinGoal">0</span>g</span>
                         </div>
-                        <div class="macro-bar-group">
-                            <div class="macro-bar-label">
-                                <span class="name" style="color:var(--carbs);">Carbs</span>
-                                <span class="values"><span id="carbsVal">0</span> / <span id="carbsGoal">0</span>g</span>
-                            </div>
-                            <div class="macro-bar-track">
-                                <div class="macro-bar-fill" id="carbsBar" style="width:0%;background:var(--carbs);"></div>
-                            </div>
-                        </div>
-                        <div class="macro-bar-group">
-                            <div class="macro-bar-label">
-                                <span class="name" style="color:var(--fat);">Fat</span>
-                                <span class="values"><span id="fatVal">0</span> / <span id="fatGoal">0</span>g</span>
-                            </div>
-                            <div class="macro-bar-track">
-                                <div class="macro-bar-fill" id="fatBar" style="width:0%;background:var(--fat);"></div>
-                            </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill" id="proteinBar" style="width:0%;background:var(--protein);"></div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Quick Stats -->
-                <div class="card">
-                    <div class="card-header">
-                        <span class="card-title">Status</span>
-                        <button class="add-entry-btn" onclick="openModal('weight')" title="Log weight">+</button>
+                    <div class="macro-bar-group">
+                        <div class="macro-bar-label">
+                            <span class="name" style="color:var(--carbs);">Carbs</span>
+                            <span class="values"><span id="status-carbs" style="font-size:0.7rem;font-weight:600;margin-right:4px;"></span><span id="carbsVal">0</span>/<span id="carbsGoal">0</span>g</span>
+                        </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill" id="carbsBar" style="width:0%;background:var(--carbs);"></div>
+                        </div>
                     </div>
-                    <div style="display:grid;gap:0.75rem;">
-                        <div>
-                            <div style="font-size:0.78rem;color:var(--text-dim);">Current Weight</div>
-                            <div class="card-value" style="font-size:1.4rem;">
-                                <span id="currentWeight">—</span> <span class="card-unit">kg</span>
-                            </div>
+                    <div class="macro-bar-group">
+                        <div class="macro-bar-label">
+                            <span class="name" style="color:var(--fat);">Fat</span>
+                            <span class="values"><span id="status-fat" style="font-size:0.7rem;font-weight:600;margin-right:4px;"></span><span id="fatVal">0</span>/<span id="fatGoal">0</span>g</span>
                         </div>
-                        <div>
-                            <div style="font-size:0.78rem;color:var(--text-dim);">Goal Weight</div>
-                            <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;">
-                                <span id="goalWeight">—</span> <span class="card-unit">kg</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size:0.78rem;color:var(--text-dim);">Activity Burned Today</div>
-                            <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--warning);">
-                                <span id="activityBurned">0</span> <span class="card-unit">kcal</span>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="font-size:0.78rem;color:var(--text-dim);">Deficit Target</div>
-                            <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--danger);">
-                                <span id="deficitTarget">500</span> <span class="card-unit">kcal</span>
-                            </div>
+                        <div class="macro-bar-track">
+                            <div class="macro-bar-fill" id="fatBar" style="width:0%;background:var(--fat);"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Food Log -->
-            <div class="card food-log">
+            <!-- 2. Calories Today -->
+            <div class="card" style="margin-bottom:1rem;padding:0.75rem 1rem;">
+                <div class="calorie-ring-container">
+                    <svg class="ring-svg" viewBox="0 0 120 120">
+                        <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                        <circle class="ring-progress" id="calorieRing" cx="60" cy="60" r="50" stroke="var(--accent)" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+                    </svg>
+                    <div class="ring-center">
+                        <span class="big-number" id="caloriesEaten">0</span>
+                        <span class="label">/ <span id="calorieGoal">0</span> kcal</span>
+                        <span class="label" style="color:var(--accent);">(<span id="caloriesRemaining">0</span> left)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Activities Today -->
+            <div class="card" style="margin-bottom:1rem;">
+                <div class="card-header">
+                    <span class="card-title">Activities Today</span>
+                    <button class="add-entry-btn" onclick="openModal('activity')" title="Add activity">+</button>
+                </div>
+                <div id="activityList"></div>
+                <div class="empty-state" id="activityEmpty" style="display:none;">
+                    <div class="icon">🏃</div>
+                    <p>No activities logged today.</p>
+                </div>
+            </div>
+
+            <!-- 4. Food Log -->
+            <div class="card food-log" style="margin-bottom:1rem;">
                 <div class="card-header">
                     <span class="card-title">Food Log</span>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
@@ -451,16 +408,37 @@
                 </div>
             </div>
 
-            <!-- Activities for the day -->
-            <div class="card" style="margin-top:1rem;">
+            <!-- 5. Status (weights & deficit) -->
+            <div class="card">
                 <div class="card-header">
-                    <span class="card-title">Activities Today</span>
-                    <button class="add-entry-btn" onclick="openModal('activity')" title="Add activity">+</button>
+                    <span class="card-title">Status</span>
+                    <button class="add-entry-btn" onclick="openModal('weight')" title="Log weight">+</button>
                 </div>
-                <div id="activityList"></div>
-                <div class="empty-state" id="activityEmpty" style="display:none;">
-                    <div class="icon">🏃</div>
-                    <p>No activities logged today.</p>
+                <div style="display:grid;gap:0.75rem;">
+                    <div>
+                        <div style="font-size:0.78rem;color:var(--text-dim);">Current Weight</div>
+                        <div class="card-value" style="font-size:1.4rem;">
+                            <span id="currentWeight">—</span> <span class="card-unit">kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.78rem;color:var(--text-dim);">Goal Weight</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;">
+                            <span id="goalWeight">—</span> <span class="card-unit">kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.78rem;color:var(--text-dim);">Activity Burned Today</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--warning);">
+                            <span id="activityBurned">0</span> <span class="card-unit">kcal</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div style="font-size:0.78rem;color:var(--text-dim);">Deficit Target</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--danger);">
+                            <span id="deficitTarget">500</span> <span class="card-unit">kcal</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -965,47 +943,45 @@
             try {
                 const res = await fetch(`${API}/api/gamification`);
                 const data = await res.json();
-                
-                // Update Streak
-                const streakEl = document.getElementById('streak-days');
-                const streakIcon = document.getElementById('streak-icon');
-                streakEl.textContent = data.streak_days;
-                
-                if (data.is_elite) {
-                    streakIcon.textContent = '💠'; // Blue Plasma for Elite
-                } else {
-                    streakIcon.textContent = '🔥';
-                }
-                
-                // Update Points
+                if (data.error) return;
+
+                // Streak
+                document.getElementById('streak-days').textContent = data.streak_days;
+                document.getElementById('streak-icon').textContent = data.is_elite ? '💠' : '🔥';
+
+                // Points
                 document.getElementById('daily-points').textContent = data.today_points;
-                
-                // Update Badges
-                const badgeContainer = document.getElementById('status-badges');
-                badgeContainer.innerHTML = '';
-                
-                if (data.tags.length === 0) {
-                     badgeContainer.innerHTML = '<span class="badge" style="background: var(--surface2); padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; color: var(--text-dim);">No activity yet</span>';
+
+                // Macro status: "good" (green) or "over"/"low" (red)
+                const tags = data.tags || [];
+
+                const proteinEl = document.getElementById('status-protein');
+                if (tags.includes('protein_met')) {
+                    proteinEl.textContent = 'good';
+                    proteinEl.style.color = '#3ecf8e';
                 } else {
-                    const badgeMap = {
-                        'protein_met': { text: 'Protein Goal', color: '#60a5fa', bg: 'rgba(96,165,250,0.15)' },
-                        'carbs_good': { text: 'Carbs OK', color: '#fbbf24', bg: 'rgba(251,191,36,0.15)' },
-                        'fat_good': { text: 'Fat OK', color: '#f87171', bg: 'rgba(248,113,113,0.15)' },
-                        'perfect_bonus': { text: 'PERFECT DAY', color: '#3ecf8e', bg: 'rgba(62,207,142,0.15)' }
-                    };
-                    
-                    data.tags.forEach(tag => {
-                        const style = badgeMap[tag];
-                        if (style) {
-                            const badge = document.createElement('span');
-                            badge.className = 'badge';
-                            badge.textContent = style.text;
-                            badge.style.cssText = `background: ${style.bg}; color: ${style.color}; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;`;
-                            badgeContainer.appendChild(badge);
-                        }
-                    });
+                    proteinEl.textContent = 'low';
+                    proteinEl.style.color = '#f87171';
                 }
-                
+
+                const carbsEl = document.getElementById('status-carbs');
+                if (tags.includes('carbs_good')) {
+                    carbsEl.textContent = 'good';
+                    carbsEl.style.color = '#3ecf8e';
+                } else {
+                    carbsEl.textContent = 'over';
+                    carbsEl.style.color = '#f87171';
+                }
+
+                const fatEl = document.getElementById('status-fat');
+                if (tags.includes('fat_good')) {
+                    fatEl.textContent = 'good';
+                    fatEl.style.color = '#3ecf8e';
+                } else {
+                    fatEl.textContent = 'over';
+                    fatEl.style.color = '#f87171';
+                }
+
             } catch (err) {
                 console.error('Gamification load error:', err);
             }
@@ -1310,12 +1286,13 @@
         function renderMacroChart(data) {
             destroyChart('macro');
             const ctx = document.getElementById('macroChart').getContext('2d');
-            
+
             charts.macro = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: data.map(d => d.date.slice(5)),
                     datasets: [
+                        // Actual data
                         {
                             label: 'Protein (g)',
                             data: data.map(d => d.protein_g),
@@ -1342,6 +1319,37 @@
                             fill: true,
                             tension: 0.3,
                             pointRadius: 2
+                        },
+                        // Target/goal dashed lines
+                        {
+                            label: 'Protein Target',
+                            data: data.map(d => d.protein_goal_g),
+                            borderColor: 'rgba(96,165,250,0.4)',
+                            borderDash: [6, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.3,
+                        },
+                        {
+                            label: 'Carbs Target',
+                            data: data.map(d => d.carbs_goal_g),
+                            borderColor: 'rgba(251,191,36,0.4)',
+                            borderDash: [6, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.3,
+                        },
+                        {
+                            label: 'Fat Target',
+                            data: data.map(d => d.fat_goal_g),
+                            borderColor: 'rgba(248,113,113,0.4)',
+                            borderDash: [6, 4],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.3,
                         },
                     ],
                 },
@@ -1375,7 +1383,8 @@
 
         function renderActivityChart(entries) {
             destroyChart('activity');
-            // Group by date
+
+            // Build full date range to ensure chart shows at least 7 days
             const byDate = {};
             entries.forEach(e => {
                 const day = e.performed_at.slice(0, 10);
@@ -1384,10 +1393,28 @@
                 byDate[day].burned += e.calories_burned;
                 byDate[day].count++;
             });
-            
-            const dates = Object.keys(byDate).sort();
+
+            // Fill in all dates so bars aren't oversized
+            const allDates = Object.keys(byDate).sort();
+            let dates = [];
+
+            if (allDates.length > 0) {
+                const earliest = new Date(allDates[0]);
+                const latest = new Date(allDates[allDates.length - 1]);
+                const rangeDays = Math.round((latest - earliest) / (1000 * 60 * 60 * 24)) + 1;
+                const minDays = Math.max(rangeDays, 7);
+
+                for (let i = 0; i < minDays; i++) {
+                    const d = new Date(earliest);
+                    d.setDate(d.getDate() + i);
+                    const ds = d.toISOString().slice(0, 10);
+                    dates.push(ds);
+                    if (!byDate[ds]) byDate[ds] = { duration: 0, burned: 0, count: 0 };
+                }
+            }
+
             const ctx = document.getElementById('activityChart').getContext('2d');
-            
+
             charts.activity = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -1399,6 +1426,9 @@
                             backgroundColor: 'rgba(251,191,36,0.6)',
                             borderRadius: 4,
                             yAxisID: 'y',
+                            maxBarThickness: 28,
+                            barPercentage: 0.6,
+                            categoryPercentage: 0.7,
                         },
                         {
                             label: 'Calories Burned',
