@@ -287,18 +287,33 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Gamification Bar -->
-        <div class="gamification-bar" style="display: flex; align-items: center; padding: 6px 16px; background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; gap: 16px;">
-            <span style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
-                <span id="streak-icon" style="font-size: 1rem;">🔥</span>
-                <strong id="streak-days">0</strong>
-                <span style="color: var(--text-dim); font-size: 0.8rem;">day streak</span>
+        <div class="gamification-bar" style="display: flex; align-items: center; padding: 10px 20px; background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; gap: 20px;">
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem;">
+                <span id="streak-icon" style="font-size: 2rem;">🔥</span>
+                <strong id="streak-days" style="font-size: 1.2rem;">0</strong>
+                <span style="color: var(--text-dim); font-size: 0.95rem;">day streak</span>
             </span>
-            <span style="color: var(--border);">|</span>
-            <span style="display: flex; align-items: center; gap: 4px; font-size: 0.85rem;">
-                <span style="font-size: 1rem;">⚡</span>
-                <strong id="daily-points">0</strong>
-                <span style="color: var(--text-dim); font-size: 0.8rem;">XP</span>
+            <span style="color: var(--border); font-size: 1.2rem;">|</span>
+            <span style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem;">
+                <span style="font-size: 2rem;">⚡</span>
+                <strong id="daily-points" style="font-size: 1.2rem;">0</strong>
+                <span style="color: var(--text-dim); font-size: 0.95rem;">XP</span>
             </span>
+        </div>
+
+        <!-- Calories Today (below gamification, above tabs) -->
+        <div class="card" style="margin-bottom: 12px; padding: 0.75rem 1rem;">
+            <div class="calorie-ring-container">
+                <svg class="ring-svg" viewBox="0 0 120 120">
+                    <circle class="ring-bg" cx="60" cy="60" r="50"/>
+                    <circle class="ring-progress" id="calorieRing" cx="60" cy="60" r="50" stroke="var(--accent)" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+                </svg>
+                <div class="ring-center">
+                    <span class="big-number" id="caloriesEaten">0</span>
+                    <span class="label">/ <span id="calorieGoal">0</span> kcal</span>
+                    <span class="label" style="color:var(--accent);">(<span id="caloriesRemaining">0</span> left)</span>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs -->
@@ -347,22 +362,7 @@
                 </div>
             </div>
 
-            <!-- 2. Calories Today -->
-            <div class="card" style="margin-bottom:1rem;padding:0.75rem 1rem;">
-                <div class="calorie-ring-container">
-                    <svg class="ring-svg" viewBox="0 0 120 120">
-                        <circle class="ring-bg" cx="60" cy="60" r="50"/>
-                        <circle class="ring-progress" id="calorieRing" cx="60" cy="60" r="50" stroke="var(--accent)" stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
-                    </svg>
-                    <div class="ring-center">
-                        <span class="big-number" id="caloriesEaten">0</span>
-                        <span class="label">/ <span id="calorieGoal">0</span> kcal</span>
-                        <span class="label" style="color:var(--accent);">(<span id="caloriesRemaining">0</span> left)</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 3. Food Log -->
+            <!-- 2. Food Log -->
             <div class="card food-log" style="margin-bottom:1rem;">
                 <div class="card-header">
                     <span class="card-title">Food Log</span>
