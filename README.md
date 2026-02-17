@@ -71,14 +71,11 @@ python3 seed.py
 
 ## Connect Your AI Agent
 
-NutriTrack ships with skill files that follow the [OpenClaw](https://docs.openclaw.ai/tools/skills) agent skill format -- an open standard for AI coding assistants. Any agent that supports OpenClaw skills (or can simply read a markdown file) can use NutriTrack out of the box.
+NutriTrack ships with a skill file that follows the [OpenClaw](https://docs.openclaw.ai/tools/skills) agent skill format -- an open standard for AI coding assistants. Any agent that supports OpenClaw skills (or can simply read a markdown file) can use NutriTrack out of the box.
 
-| File | Purpose |
-|------|---------|
-| **[`SKILL.md`](SKILL.md)** | Compact quick-reference skill file with an endpoint table, meal type rules, and estimation tips. This is the standard OpenClaw entry point. |
-| **[`nutritrack.md`](nutritrack.md)** | Full detailed skill file with complete API examples, curl commands, calorie calculation formulas, installation instructions, and troubleshooting. |
+**[`SKILL.md`](SKILL.md)** -- This is the agent skill file. It contains everything an AI agent needs to use NutriTrack: connection details, all API endpoints with curl examples, calorie estimation guidelines, meal type rules, calorie calculation formulas, and response style instructions. Feed this file to your agent and it will know how to log food, exercise, weight, and health vitals on your behalf.
 
-Both files use YAML frontmatter with OpenClaw metadata (`name`, `description`, `homepage`, `metadata.openclaw`) so skill managers can auto-discover and install NutriTrack. Feed either file to your agent and it will know how to log food, exercise, weight, and health vitals on your behalf.
+The file uses YAML frontmatter with OpenClaw metadata (`name`, `description`, `homepage`, `metadata.openclaw`) so skill managers like [ClawHub](https://github.com/openclaw/clawhub) can auto-discover and install NutriTrack.
 
 For additional agent setup instructions and prompt templates, see [docs/AGENT_README.md](docs/AGENT_README.md).
 
