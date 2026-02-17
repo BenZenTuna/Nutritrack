@@ -33,8 +33,8 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 ### Path A: Docker (Recommended)
 
 ```bash
-git clone https://github.com/USERNAME/nutritrack.git
-cd nutritrack
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
 docker compose up -d
 ```
 
@@ -43,8 +43,8 @@ Open [http://localhost:8000](http://localhost:8000) in your browser.
 ### Path B: Direct Install
 
 ```bash
-git clone https://github.com/USERNAME/nutritrack.git
-cd nutritrack
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
 chmod +x install.sh
 ./install.sh
 ```
