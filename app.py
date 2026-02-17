@@ -4,7 +4,7 @@ FastAPI backend for the nutrition tracking dashboard.
 """
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -109,7 +109,9 @@ def get_date_range(date_str: str):
 # ── Dashboard ────────────────────────────────────────────────────────
 @app.get("/")
 def serve_dashboard():
-    return FileResponse(os.path.join(STATIC_DIR, "dashboard.html"))
+    with open(os.path.join(STATIC_DIR, "dashboard.html"), "r") as f:
+        html = f.read()
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 # ── Profile Endpoints ────────────────────────────────────────────────
 @app.get("/api/profile")
