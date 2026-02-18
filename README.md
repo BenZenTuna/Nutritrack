@@ -30,122 +30,27 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 - Docker and bare-metal deployment options
 - Food search across past entries and CSV data export
 
-## Quick Start
+## Installation
 
-```bash
-git clone https://github.com/BenZenTuna/Nutritrack.git
-cd Nutritrack
-chmod +x deploy.sh
-./deploy.sh
-```
+### 🤖 Option A: Let Your AI Agent Install It — *Easiest, Zero Human Effort*
 
-That's it. Open [http://localhost:8000](http://localhost:8000).
+**You don't touch the terminal. Your AI bot does everything.**
 
-The script auto-detects your environment (Docker or Python) and handles everything — no prompts, no decisions.
-
-## Management
-
-```bash
-./deploy.sh          # Start or restart
-./deploy.sh stop     # Stop the server
-./deploy.sh status   # Check if running
-./deploy.sh update   # Pull latest + restart
-```
-
-Set `NUTRITRACK_PORT=9000 ./deploy.sh` to use a custom port.
-
-### Alternative Installation
-
-<details>
-<summary>Docker (manual)</summary>
-
-```bash
-git clone https://github.com/BenZenTuna/Nutritrack.git
-cd Nutritrack
-docker compose up -d
-```
-
-</details>
-
-<details>
-<summary>Direct install (manual)</summary>
-
-```bash
-git clone https://github.com/BenZenTuna/Nutritrack.git
-cd Nutritrack
-chmod +x install.sh
-./install.sh
-```
-
-The installer checks for Python 3.10+, creates a virtual environment, installs dependencies, initializes the database, and starts the server.
-
-</details>
-
-## 🤖 AI Agent Setup
-
-NutriTrack is designed to work with AI agents. Instead of filling out forms, you just talk to your AI assistant naturally — *"I had a chicken sandwich for lunch"* — and it handles the rest.
-
-### For OpenClaw Users
-
-#### Step 1: Install the Skill
-
-Tell your agent exactly this:
+Just tell your [OpenClaw](https://docs.openclaw.ai) agent:
 
 > **"Install this skill: https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/SKILL.md"**
 
-That's it. Your agent will download the skill file. Then restart the gateway:
-
-```bash
-openclaw gateway restart
-```
-
-**Alternative install methods:**
-
-<details>
-<summary>One-liner terminal command</summary>
-
-```bash
-curl -sL https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/remote-install.sh | bash
-openclaw gateway restart
-```
-</details>
-
-<details>
-<summary>From cloned repo</summary>
-
-```bash
-cd Nutritrack
-chmod +x skills/nutritrack-skill/install.sh
-./skills/nutritrack-skill/install.sh
-openclaw gateway restart
-```
-</details>
-
-#### Step 2: Deploy NutriTrack
-
-After the skill is installed, tell your agent:
+Then:
 
 > **"Deploy NutriTrack"**
 
-Your agent will automatically:
-1. Clone the repository from GitHub
-2. Run the deploy script (auto-detects Docker or Python — no decisions needed)
-3. Start the server
-4. Verify it's running
+Done. Your agent clones the repo, runs the deploy script, starts the server, and verifies it's healthy. You never open a terminal, install dependencies, or make a single decision.
 
-You don't need to do anything else. No sudo, no configuration, no choices.
-
-#### Step 3: Set Up Your Profile
-
-Tell your agent something like:
+Next, set up your profile by telling your agent:
 
 > **"Set up my NutriTrack profile. I'm 30 years old, male, 180cm tall, 85kg, moderately active, and my goal weight is 78kg."**
 
-Your agent will create your profile, which is used to calculate your daily calorie and macro targets.
-
-#### Step 4: Start Tracking
-
-You're done with setup. From now on, just talk naturally:
+Now start tracking — just talk naturally:
 
 | You say | Your agent does |
 |---------|----------------|
@@ -158,9 +63,83 @@ You're done with setup. From now on, just talk naturally:
 
 Your dashboard is always available at **http://localhost:8000** to see charts, trends, streaks, and gamification badges.
 
-### What Happens Behind the Scenes
+<details>
+<summary>Alternative skill install methods</summary>
 
-Here's the full chain from that one URL you gave your agent:
+**One-liner terminal command:**
+```bash
+curl -sL https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/remote-install.sh | bash
+openclaw gateway restart
+```
+
+**From cloned repo:**
+```bash
+cd Nutritrack
+chmod +x skills/nutritrack-skill/install.sh
+./skills/nutritrack-skill/install.sh
+openclaw gateway restart
+```
+</details>
+
+### 🛠 Option B: Manual Deploy Script
+
+If you prefer to install it yourself, or don't have an OpenClaw agent:
+
+```bash
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
+chmod +x deploy.sh
+./deploy.sh
+```
+
+Open [http://localhost:8000](http://localhost:8000). The script auto-detects Docker or Python and handles everything — no prompts, no decisions.
+
+<details>
+<summary>Other manual methods (Docker / direct install)</summary>
+
+**Docker:**
+```bash
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
+docker compose up -d
+```
+
+**Direct install:**
+```bash
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
+chmod +x install.sh
+./install.sh
+```
+
+The installer checks for Python 3.10+, creates a virtual environment, installs dependencies, initializes the database, and starts the server.
+
+</details>
+
+### For Other AI Agents (Claude, GPT, etc.)
+
+Any AI agent that can make HTTP calls can use NutriTrack:
+
+1. Deploy with `./deploy.sh` (see Option B above)
+2. Point your agent to `http://localhost:8000`
+3. Share the [Agent API Reference](docs/AGENT_README.md) with your agent
+
+No authentication — just JSON over HTTP.
+
+## Management
+
+```bash
+./deploy.sh          # Start or restart
+./deploy.sh stop     # Stop the server
+./deploy.sh status   # Check if running
+./deploy.sh update   # Pull latest + restart
+```
+
+Set `NUTRITRACK_PORT=9000 ./deploy.sh` to use a custom port.
+
+## What Happens Behind the Scenes
+
+Here's the full chain when your AI agent installs NutriTrack from one URL:
 
 ```
 You: "Install this skill: https://raw.githubusercontent.com/..."
@@ -188,22 +167,12 @@ You: "Install this skill: https://raw.githubusercontent.com/..."
 
 The agent never needs web search. Everything it needs is in that one skill file on disk.
 
-### Your Data is Safe
+## Your Data is Safe
 
 - Your nutrition database is stored locally on your machine
 - `git pull` and updates will **never** delete your data
 - No cloud accounts, no external services, no data leaves your machine
 - Only you (and your agent) can access it
-
-### For Other AI Agents (Claude, GPT, etc.)
-
-If your AI agent can make HTTP calls, it can use NutriTrack. After deploying:
-
-1. Run `./deploy.sh` (see [Quick Start](#quick-start))
-2. Point your agent to `http://localhost:8000`
-3. Share the [Agent API Reference](docs/AGENT_README.md) with your agent
-
-The API requires no authentication — just JSON over HTTP.
 
 ## Load Demo Data
 
