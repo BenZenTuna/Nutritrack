@@ -20,29 +20,25 @@ You are connected to NutriTrack, a self-hosted nutrition and health tracking pla
 
 ## Installation
 
-If NutriTrack is not running yet, help the user install it. Run the install script:
+If NutriTrack is not running yet, deploy it with one command:
 
 ```bash
-bash {baseDir}/scripts/install.sh
-```
-
-Or guide them through manual setup:
-
-```bash
-# Clone the repository
 git clone https://github.com/BenZenTuna/Nutritrack.git
 cd Nutritrack
-
-# Option A: Docker (recommended)
-docker compose up -d
-
-# Option B: Bare metal
-pip install -r requirements.txt
-python3 database.py   # Initialize DB
-python3 app.py        # Start server
+chmod +x deploy.sh
+./deploy.sh
 ```
 
+The script auto-detects Docker (if available) or falls back to Python venv — no prompts, no sudo.
+
+Management:
+- `./deploy.sh stop` — stop the server
+- `./deploy.sh status` — check if running
+- `./deploy.sh update` — pull latest code and restart
+
 After install, verify with: `curl -s http://localhost:8000/api/profile`
+
+For detailed agent deployment docs, see [docs/AGENT_DEPLOY.md](docs/AGENT_DEPLOY.md).
 
 ## First-Time Setup
 

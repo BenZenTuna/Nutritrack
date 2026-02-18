@@ -32,7 +32,32 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 
 ## Quick Start
 
-### Path A: Docker (Recommended)
+```bash
+git clone https://github.com/BenZenTuna/Nutritrack.git
+cd Nutritrack
+chmod +x deploy.sh
+./deploy.sh
+```
+
+That's it. Open [http://localhost:8000](http://localhost:8000).
+
+The script auto-detects your environment (Docker or Python) and handles everything — no prompts, no decisions.
+
+## Management
+
+```bash
+./deploy.sh          # Start or restart
+./deploy.sh stop     # Stop the server
+./deploy.sh status   # Check if running
+./deploy.sh update   # Pull latest + restart
+```
+
+Set `NUTRITRACK_PORT=9000 ./deploy.sh` to use a custom port.
+
+### Alternative Installation
+
+<details>
+<summary>Docker (manual)</summary>
 
 ```bash
 git clone https://github.com/BenZenTuna/Nutritrack.git
@@ -40,9 +65,10 @@ cd Nutritrack
 docker compose up -d
 ```
 
-Open [http://localhost:8000](http://localhost:8000) in your browser.
+</details>
 
-### Path B: Direct Install
+<details>
+<summary>Direct install (manual)</summary>
 
 ```bash
 git clone https://github.com/BenZenTuna/Nutritrack.git
@@ -52,6 +78,132 @@ chmod +x install.sh
 ```
 
 The installer checks for Python 3.10+, creates a virtual environment, installs dependencies, initializes the database, and starts the server.
+
+</details>
+
+## 🤖 AI Agent Setup
+
+NutriTrack is designed to work with AI agents. Instead of filling out forms, you just talk to your AI assistant naturally — *"I had a chicken sandwich for lunch"* — and it handles the rest.
+
+### For OpenClaw Users
+
+#### Step 1: Install the Skill
+
+Tell your agent exactly this:
+
+> **"Install this skill: https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/SKILL.md"**
+
+That's it. Your agent will download the skill file. Then restart the gateway:
+
+```bash
+openclaw gateway restart
+```
+
+**Alternative install methods:**
+
+<details>
+<summary>One-liner terminal command</summary>
+
+```bash
+curl -sL https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/remote-install.sh | bash
+openclaw gateway restart
+```
+</details>
+
+<details>
+<summary>From cloned repo</summary>
+
+```bash
+cd Nutritrack
+chmod +x skills/nutritrack-skill/install.sh
+./skills/nutritrack-skill/install.sh
+openclaw gateway restart
+```
+</details>
+
+#### Step 2: Deploy NutriTrack
+
+After the skill is installed, tell your agent:
+
+> **"Deploy NutriTrack"**
+
+Your agent will automatically:
+1. Clone the repository from GitHub
+2. Run the deploy script (auto-detects Docker or Python — no decisions needed)
+3. Start the server
+4. Verify it's running
+
+You don't need to do anything else. No sudo, no configuration, no choices.
+
+#### Step 3: Set Up Your Profile
+
+Tell your agent something like:
+
+> **"Set up my NutriTrack profile. I'm 30 years old, male, 180cm tall, 85kg, moderately active, and my goal weight is 78kg."**
+
+Your agent will create your profile, which is used to calculate your daily calorie and macro targets.
+
+#### Step 4: Start Tracking
+
+You're done with setup. From now on, just talk naturally:
+
+| You say | Your agent does |
+|---------|----------------|
+| *"I had oatmeal with banana for breakfast"* | Estimates ~350 kcal, 12g protein, 58g carbs, 8g fat → logs it |
+| *"I went for a 30 minute run"* | Calculates ~340 kcal burned using your weight → logs it |
+| *"I weigh 84.2 kg this morning"* | Logs weight, updates your profile, recalculates daily targets |
+| *"How am I doing today?"* | Shows your calorie/macro intake vs goals, remaining budget |
+| *"How was my week?"* | Gives you a 7-day nutrition, exercise, and weight summary |
+| *"My blood pressure is 118/76"* | Logs health vitals |
+
+Your dashboard is always available at **http://localhost:8000** to see charts, trends, streaks, and gamification badges.
+
+### What Happens Behind the Scenes
+
+Here's the full chain from that one URL you gave your agent:
+
+```
+You: "Install this skill: https://raw.githubusercontent.com/..."
+ │
+ ├─ Agent downloads SKILL.md (one small file via curl)
+ │
+ ├─ SKILL.md contains EVERYTHING the agent needs:
+ │   ├── GitHub repo URL + deploy commands
+ │   ├── Full API reference (every endpoint, every field)
+ │   ├── Calorie & macro estimation tables
+ │   ├── Exercise MET formula + values
+ │   ├── Gamification rules (streaks, points, badges)
+ │   └── Agent behavior rules
+ │
+ ├─ You: "Deploy NutriTrack"
+ │   └─ Agent: git clone → ./deploy.sh → server running ✓
+ │
+ ├─ You: "Set up my profile..."
+ │   └─ Agent: PUT /api/profile → daily targets calculated ✓
+ │
+ └─ You: "I had pizza for dinner"
+     └─ Agent: estimates macros → POST /api/food → logged ✓
+         └─ Dashboard updates automatically every 30 seconds
+```
+
+The agent never needs web search. Everything it needs is in that one skill file on disk.
+
+### Your Data is Safe
+
+- Your nutrition database is stored locally on your machine
+- `git pull` and updates will **never** delete your data
+- No cloud accounts, no external services, no data leaves your machine
+- Only you (and your agent) can access it
+
+### For Other AI Agents (Claude, GPT, etc.)
+
+If your AI agent can make HTTP calls, it can use NutriTrack. After deploying:
+
+1. Run `./deploy.sh` (see [Quick Start](#quick-start))
+2. Point your agent to `http://localhost:8000`
+3. Share the [Agent API Reference](docs/AGENT_README.md) with your agent
+
+The API requires no authentication — just JSON over HTTP.
 
 ## Load Demo Data
 
@@ -68,16 +220,6 @@ docker compose exec nutritrack python3 seed.py
 ```bash
 python3 seed.py
 ```
-
-## Connect Your AI Agent
-
-NutriTrack ships with a skill file that follows the [OpenClaw](https://docs.openclaw.ai/tools/skills) agent skill format -- an open standard for AI coding assistants. Any agent that supports OpenClaw skills (or can simply read a markdown file) can use NutriTrack out of the box.
-
-**[`SKILL.md`](SKILL.md)** -- This is the agent skill file. It contains everything an AI agent needs to use NutriTrack: connection details, all API endpoints with curl examples, calorie estimation guidelines, meal type rules, calorie calculation formulas, and response style instructions. Feed this file to your agent and it will know how to log food, exercise, weight, and health vitals on your behalf.
-
-The file uses YAML frontmatter with OpenClaw metadata (`name`, `description`, `homepage`, `metadata.openclaw`) so skill managers like [ClawHub](https://github.com/openclaw/clawhub) can auto-discover and install NutriTrack.
-
-For additional agent setup instructions and prompt templates, see [docs/AGENT_README.md](docs/AGENT_README.md).
 
 ## API Reference
 

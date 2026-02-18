@@ -9,6 +9,7 @@ dist/
 build/
 .DS_Store
 nutritrack.log
+.nutritrack.pid
 data/
 *:Zone.Identifier
 *.jpeg
