@@ -116,16 +116,6 @@ The installer checks for Python 3.10+, creates a virtual environment, installs d
 
 </details>
 
-### For Other AI Agents (Claude, GPT, etc.)
-
-Any AI agent that can make HTTP calls can use NutriTrack:
-
-1. Deploy with `./deploy.sh` (see Option B above)
-2. Point your agent to `http://localhost:8000`
-3. Share the [Agent API Reference](docs/AGENT_README.md) with your agent
-
-No authentication — just JSON over HTTP.
-
 ## Management
 
 ```bash
