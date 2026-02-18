@@ -583,7 +583,6 @@
                 </div>
                 <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
                     <button class="btn-save" onclick="saveProfile()">Save Profile</button>
-                    <button class="btn-save" onclick="seedDemoData()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);">Seed Demo Data</button>
                 </div>
                 <div id="profileMsg" style="margin-top:0.75rem;font-size:0.9rem;color:var(--accent);display:none;"></div>
 
@@ -925,18 +924,6 @@
             }
         }
 
-        async function seedDemoData() {
-            if (!confirm('This will replace ALL existing data with demo data. Continue?')) return;
-            try {
-                const res = await fetch(`${API}/api/seed-demo-data`, { method: 'POST' });
-                const data = await res.json();
-                alert(data.message);
-                loadOverview();
-                loadProfile();
-            } catch (err) {
-                alert('Failed to seed data.');
-            }
-        }
 
         // ─── Gamification ───────────────────────────────────────────────
         async function loadGamification() {
