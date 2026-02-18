@@ -38,7 +38,7 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 
 Just tell your [OpenClaw](https://docs.openclaw.ai) agent:
 
-> **"Install this skill: https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/SKILL.md"**
+> **"Install this skill: https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/SKILL.md"**
 
 Then:
 
@@ -68,15 +68,15 @@ Your dashboard is always available at **http://localhost:8000** to see charts, t
 
 **One-liner terminal command:**
 ```bash
-curl -sL https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/skills/nutritrack-skill/remote-install.sh | bash
+curl -sL https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/remote-install.sh | bash
 openclaw gateway restart
 ```
 
 **From cloned repo:**
 ```bash
 cd Nutritrack
-chmod +x skills/nutritrack-skill/install.sh
-./skills/nutritrack-skill/install.sh
+chmod +x install.sh
+./install.sh
 openclaw gateway restart
 ```
 </details>
