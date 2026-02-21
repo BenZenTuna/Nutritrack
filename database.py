@@ -92,11 +92,35 @@ def init_db():
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE TABLE IF NOT EXISTS daily_coaching (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            coaching_date TEXT NOT NULL UNIQUE,
+            coaching_text TEXT NOT NULL,
+            meal_count INTEGER DEFAULT 0,
+            calories_so_far REAL DEFAULT 0,
+            calories_remaining REAL DEFAULT 0,
+            protein_status TEXT DEFAULT 'unknown',
+            top_priority TEXT,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS coaching_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            week_start TEXT NOT NULL,
+            week_end TEXT NOT NULL,
+            report_text TEXT NOT NULL,
+            summary_json TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE INDEX IF NOT EXISTS idx_often_used_updated ON often_used_foods(updated_at);
         CREATE INDEX IF NOT EXISTS idx_food_logged_at ON food_entries(logged_at);
         CREATE INDEX IF NOT EXISTS idx_weight_measured_at ON weight_logs(measured_at);
         CREATE INDEX IF NOT EXISTS idx_activity_performed_at ON sport_activities(performed_at);
         CREATE INDEX IF NOT EXISTS idx_health_measured_at ON health_measurements(measured_at);
+        CREATE INDEX IF NOT EXISTS idx_daily_coaching_date ON daily_coaching(coaching_date);
+        CREATE INDEX IF NOT EXISTS idx_coaching_created ON coaching_reports(created_at);
+        CREATE INDEX IF NOT EXISTS idx_coaching_week ON coaching_reports(week_start, week_end);
     """)
     conn.commit()
     conn.close()

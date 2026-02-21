@@ -28,6 +28,7 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 - AI agent integration -- any LLM can log and query data via standard HTTP requests
 - Zero-configuration SQLite database (no external database server required)
 - Docker and bare-metal deployment options
+- AI Coaching — Real-time post-meal tips + weekly health reports from your AI agent
 - Food search across past entries and CSV data export
 
 ## Installation
@@ -253,6 +254,44 @@ All endpoints are served under `http://localhost:8000`. Interactive Swagger docu
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/seed-demo-data` | Populate the database with 30 days of demo data |
+
+### Coaching
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| PUT | `/api/coaching/daily` | Update today's post-meal coaching tip |
+| GET | `/api/coaching/daily` | Get coaching tip for a date |
+| POST | `/api/coaching/report` | Save a weekly coaching report |
+| GET | `/api/coaching/reports` | List all weekly reports |
+| GET | `/api/coaching/reports/latest` | Get most recent weekly report |
+| DELETE | `/api/coaching/reports/{id}` | Delete a weekly report |
+
+## AI Coaching System
+
+NutriTrack includes a two-tier AI coaching system that turns your agent into a personal health coach:
+
+### Daily Post-Meal Coaching
+
+After every meal you log, your AI agent analyzes your current nutrition status and writes a short coaching tip that appears on your dashboard. The collapsible panel below the macro bars shows:
+
+- **One-line priority** — the single most important thing to focus on for the rest of the day
+- **Protein status badge** — instant visual of whether you're on track, low, or critical
+- **Expanded view** — click to read the full coaching analysis with specific meal suggestions
+
+The agent updates this automatically every time it logs food via `POST /api/food`, followed by `PUT /api/coaching/daily`.
+
+### Weekly Health Reports
+
+Every Sunday (or on demand), your agent writes a comprehensive weekly review that appears in the dashboard's **Coaching tab**:
+
+- Calorie compliance analysis with specific days highlighted
+- Weight trend evaluation (too fast / healthy / too slow)
+- Food quality spotlight naming specific meals
+- Activity summary
+- Letter grade (A+ through F)
+- 3 concrete action items for next week
+
+Reports are saved via `POST /api/coaching/report` and displayed with summary stat cards and formatted sections.
 
 ## Configuration
 

@@ -102,6 +102,21 @@ class OftenUsedItem(BaseModel):
 class OftenUsedUpdate(BaseModel):
     items: list[OftenUsedItem]
 
+class DailyCoaching(BaseModel):
+    coaching_date: str  # YYYY-MM-DD
+    coaching_text: str  # Full coaching tip (can be multi-line)
+    meal_count: Optional[int] = 0
+    calories_so_far: Optional[float] = 0
+    calories_remaining: Optional[float] = 0
+    protein_status: Optional[str] = "unknown"  # on_track, low, critical, exceeded
+    top_priority: Optional[str] = None  # One-line priority
+
+class CoachingReport(BaseModel):
+    week_start: str
+    week_end: str
+    report_text: str
+    summary_json: Optional[str] = None
+
 # ── Helper ───────────────────────────────────────────────────────────
 def row_to_dict(row):
     if row is None: return None
@@ -650,6 +665,104 @@ def get_coaching(date: Optional[str] = None):
 
     return {"date": target_date, "tips": tips, "intake": intake, "goals": goals}
 
+# ── Daily Coaching (Agent-Written) ──────────────────────────────────
+@app.put("/api/coaching/daily")
+def update_daily_coaching(coaching: DailyCoaching):
+    conn = get_db()
+    cursor = conn.cursor()
+
+    existing = cursor.execute(
+        "SELECT id FROM daily_coaching WHERE coaching_date = ?", (coaching.coaching_date,)
+    ).fetchone()
+
+    if existing:
+        cursor.execute(
+            """UPDATE daily_coaching SET coaching_text = ?, meal_count = ?, calories_so_far = ?,
+               calories_remaining = ?, protein_status = ?, top_priority = ?, updated_at = CURRENT_TIMESTAMP
+               WHERE coaching_date = ?""",
+            (coaching.coaching_text, coaching.meal_count, coaching.calories_so_far,
+             coaching.calories_remaining, coaching.protein_status, coaching.top_priority,
+             coaching.coaching_date)
+        )
+    else:
+        cursor.execute(
+            """INSERT INTO daily_coaching (coaching_date, coaching_text, meal_count, calories_so_far,
+               calories_remaining, protein_status, top_priority) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+            (coaching.coaching_date, coaching.coaching_text, coaching.meal_count,
+             coaching.calories_so_far, coaching.calories_remaining, coaching.protein_status,
+             coaching.top_priority)
+        )
+
+    conn.commit()
+    row = cursor.execute(
+        "SELECT * FROM daily_coaching WHERE coaching_date = ?", (coaching.coaching_date,)
+    ).fetchone()
+    conn.close()
+
+    return {"coaching": row_to_dict(row), "message": f"Daily coaching updated for {coaching.coaching_date}"}
+
+@app.get("/api/coaching/daily")
+def get_daily_coaching(date: Optional[str] = None):
+    target_date = date or datetime.now().date().isoformat()
+    conn = get_db()
+    row = conn.execute(
+        "SELECT * FROM daily_coaching WHERE coaching_date = ?", (target_date,)
+    ).fetchone()
+    conn.close()
+
+    if not row:
+        return {"coaching": None, "message": "No coaching tip for this date yet."}
+    return {"coaching": row_to_dict(row)}
+
+# ── Coaching Reports (Weekly) ───────────────────────────────────────
+@app.post("/api/coaching/report")
+def create_coaching_report(report: CoachingReport):
+    conn = get_db()
+    cursor = conn.cursor()
+    existing = cursor.execute(
+        "SELECT id FROM coaching_reports WHERE week_start = ? AND week_end = ?",
+        (report.week_start, report.week_end)
+    ).fetchone()
+    if existing:
+        cursor.execute(
+            "UPDATE coaching_reports SET report_text = ?, summary_json = ?, created_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (report.report_text, report.summary_json, existing["id"])
+        )
+    else:
+        cursor.execute(
+            "INSERT INTO coaching_reports (week_start, week_end, report_text, summary_json) VALUES (?, ?, ?, ?)",
+            (report.week_start, report.week_end, report.report_text, report.summary_json)
+        )
+    conn.commit()
+    entry_id = existing["id"] if existing else cursor.lastrowid
+    row = cursor.execute("SELECT * FROM coaching_reports WHERE id = ?", (entry_id,)).fetchone()
+    conn.close()
+    return {"report": row_to_dict(row), "message": f"Coaching report saved for {report.week_start} to {report.week_end}"}
+
+@app.get("/api/coaching/reports")
+def get_coaching_reports(limit: int = 12):
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM coaching_reports ORDER BY week_end DESC LIMIT ?", (limit,)).fetchall()
+    conn.close()
+    return {"reports": rows_to_list(rows), "count": len(rows)}
+
+@app.get("/api/coaching/reports/latest")
+def get_latest_coaching_report():
+    conn = get_db()
+    row = conn.execute("SELECT * FROM coaching_reports ORDER BY week_end DESC LIMIT 1").fetchone()
+    conn.close()
+    if not row:
+        return {"report": None, "message": "No coaching reports yet."}
+    return {"report": row_to_dict(row)}
+
+@app.delete("/api/coaching/reports/{report_id}")
+def delete_coaching_report(report_id: int):
+    conn = get_db()
+    conn.execute("DELETE FROM coaching_reports WHERE id = ?", (report_id,))
+    conn.commit()
+    conn.close()
+    return {"message": f"Coaching report {report_id} deleted."}
+
 # ── Weekly Report ────────────────────────────────────────────────────
 @app.get("/api/weekly-report")
 def get_weekly_report(date: Optional[str] = None):
@@ -1032,7 +1145,7 @@ def seed_demo_data():
     conn = get_db()
 
     # Clear existing data
-    for table in ["food_entries", "weight_logs", "sport_activities", "health_measurements", "often_used_foods", "user_profile"]:
+    for table in ["food_entries", "weight_logs", "sport_activities", "health_measurements", "often_used_foods", "daily_coaching", "coaching_reports", "user_profile"]:
         conn.execute(f"DELETE FROM {table}")
     conn.commit()
 

@@ -313,6 +313,131 @@
     .often-add-btn:hover { background: var(--accent); color: #000; }
     .often-add-btn:active { transform: scale(0.9); }
 
+    /* ─── Daily Coaching Panel ──────────────────────────────── */
+    .daily-coaching-panel {
+        margin-bottom: 16px;
+        border-radius: var(--radius);
+        background: var(--surface);
+        border: 1px solid var(--border);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .coaching-collapsed {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .coaching-collapsed:hover { background: var(--surface2); }
+    .coaching-collapsed-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 1;
+        min-width: 0;
+    }
+    .coaching-icon { font-size: 16px; flex-shrink: 0; }
+    .coaching-priority {
+        font-size: 13px;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .coaching-collapsed-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .coaching-protein-badge {
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+    .coaching-protein-badge.on-track { background: rgba(62, 207, 142, 0.15); color: #3ecf8e; }
+    .coaching-protein-badge.low { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .coaching-protein-badge.critical { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+    .coaching-protein-badge.exceeded { background: rgba(96, 165, 250, 0.15); color: #60a5fa; }
+    .coaching-chevron {
+        font-size: 10px;
+        color: var(--text-dim);
+        transition: transform 0.3s ease;
+    }
+    .coaching-chevron.open { transform: rotate(180deg); }
+    .coaching-expanded {
+        padding: 0 16px 16px 42px;
+    }
+    .coaching-full-text {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text);
+        margin-bottom: 10px;
+    }
+    .coaching-full-text p { margin-bottom: 8px; }
+    .coaching-meta {
+        font-size: 11px;
+        color: var(--text-dim);
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+    }
+
+    /* ─── Coaching Tab ──────────────────────────────────────── */
+    .coaching-week-selector { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 20px; }
+    .coaching-week-pill {
+        padding: 6px 14px; border-radius: 20px; font-size: 13px;
+        background: var(--surface2); color: var(--text-dim); cursor: pointer;
+        border: 1px solid transparent; transition: all 0.2s;
+    }
+    .coaching-week-pill:hover { color: var(--text); border-color: var(--border); }
+    .coaching-week-pill.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+    .coaching-summary-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
+    .coaching-stat-card {
+        flex: 1; min-width: 120px; padding: 14px; border-radius: var(--radius);
+        background: var(--surface); border: 1px solid var(--border);
+    }
+    .coaching-stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+    .coaching-stat-card .value { font-size: 20px; font-weight: 700; margin-top: 4px; font-family: 'Space Mono', monospace; }
+    .coaching-grade { font-size: 32px; font-weight: 800; text-align: center; }
+    .coaching-report-body { max-width: 720px; line-height: 1.7; }
+    .coaching-report-body .section-header {
+        color: var(--accent); font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 1px;
+        margin-top: 28px; margin-bottom: 8px; padding-bottom: 4px;
+        border-bottom: 1px solid var(--border);
+    }
+    .coaching-report-body .section-header:first-child { margin-top: 0; }
+    .coaching-report-body p { color: var(--text); margin-bottom: 12px; }
+    .coaching-report-body .bullet-item {
+        padding-left: 16px; border-left: 2px solid var(--accent); margin-bottom: 8px; color: var(--text);
+    }
+    .coaching-actions-card {
+        margin-top: 24px; padding: 20px; border-radius: var(--radius);
+        background: var(--accent-dim); border: 1px solid rgba(62, 207, 142, 0.2);
+    }
+    .coaching-actions-card .action-title {
+        font-size: 13px; font-weight: 700; color: var(--accent);
+        text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
+    }
+    .coaching-actions-card .action-item { padding: 8px 0; color: var(--text); border-bottom: 1px solid rgba(62,207,142,0.1); }
+    .coaching-actions-card .action-item:last-child { border-bottom: none; }
+    .coaching-empty { text-align: center; padding: 60px 20px; color: var(--text-dim); }
+    .coaching-empty .empty-icon { font-size: 48px; margin-bottom: 16px; }
+    .coaching-empty .empty-title { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+
+    /* ─── Gear Button ───────────────────────────────────────── */
+    .gear-btn {
+        background: var(--surface); border: 1px solid var(--border); color: var(--text-dim);
+        width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.1rem;
+        display: grid; place-items: center; transition: all 0.15s;
+    }
+    .gear-btn:hover { background: var(--surface2); border-color: var(--accent); color: var(--text); }
+
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 768px) {
         /* Force everything full-width */
@@ -363,6 +488,11 @@
 
         /* Tab panels — slight inner padding so text doesn't touch edges */
         .tab-panel { padding: 0; }
+
+        /* Coaching panel mobile */
+        .daily-coaching-panel { border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
+        .coaching-summary-cards { flex-wrap: wrap; }
+        .coaching-stat-card { min-width: calc(50% - 8px); }
     }
     </style>
 </head>
@@ -375,6 +505,7 @@
                 <input type="date" id="dateSelector" onchange="onDateChange()">
                 <button onclick="changeDate(1)" title="Next day">›</button>
                 <button onclick="goToday()" title="Today" style="width:auto;padding:0 0.75rem;font-size:0.8rem;">Today</button>
+                <button class="gear-btn" onclick="openModal('profile')" title="Profile Settings">&#9881;</button>
             </div>
         </div>
     </header>
@@ -417,7 +548,7 @@
             <button class="tab active" data-tab="overview">Overview</button>
             <button class="tab" data-tab="charts">Charts</button>
             <button class="tab" data-tab="health">Health</button>
-            <button class="tab" data-tab="profile">Profile</button>
+            <button class="tab" data-tab="coaching">Coaching</button>
         </div>
 
         <!-- ═══ OVERVIEW TAB ═══ -->
@@ -455,6 +586,24 @@
                             <div class="macro-bar-fill" id="fatBar" style="width:0%;background:var(--fat);"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 1b. Daily Coaching Panel -->
+            <div class="daily-coaching-panel" id="dailyCoachingPanel" style="display:none;">
+                <div class="coaching-collapsed" id="coachingCollapsed" onclick="toggleCoachingPanel()">
+                    <div class="coaching-collapsed-left">
+                        <span class="coaching-icon">&#129504;</span>
+                        <span class="coaching-priority" id="coachingPriority">Loading tip...</span>
+                    </div>
+                    <div class="coaching-collapsed-right">
+                        <span class="coaching-protein-badge" id="coachingProteinBadge"></span>
+                        <span class="coaching-chevron" id="coachingChevron">&#9660;</span>
+                    </div>
+                </div>
+                <div class="coaching-expanded" id="coachingExpanded" style="display:none;">
+                    <div class="coaching-full-text" id="coachingFullText"></div>
+                    <div class="coaching-meta" id="coachingMeta"></div>
                 </div>
             </div>
 
@@ -659,68 +808,19 @@
             </div>
         </div>
 
-        <!-- ═══ PROFILE TAB ═══ -->
-        <div class="tab-panel" id="tab-profile">
-            <div class="card">
-                <div class="card-header"><span class="card-title">Your Profile</span></div>
-                <p style="color:var(--text-dim);font-size:0.9rem;margin-bottom:1.25rem;">
-                    Your calorie goals and macro targets are calculated from this data. Update it whenever your stats change.
-                </p>
-                <div class="profile-form" id="profileForm">
-                    <div class="form-group">
-                        <label>Age</label>
-                        <input type="number" id="pAge" min="10" max="120" placeholder="30">
-                    </div>
-                    <div class="form-group">
-                        <label>Sex</label>
-                        <select id="pSex">
-                            <option value="male">Male</option>
-                            <option value="female">Female</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Height (cm)</label>
-                        <input type="number" id="pHeight" min="50" max="300" step="0.1" placeholder="175">
-                    </div>
-                    <div class="form-group">
-                        <label>Current Weight (kg)</label>
-                        <input type="number" id="pWeight" min="20" max="500" step="0.1" placeholder="85">
-                    </div>
-                    <div class="form-group">
-                        <label>Activity Level</label>
-                        <select id="pActivity">
-                            <option value="sedentary">Sedentary (desk job)</option>
-                            <option value="light">Light (1-3 days/week)</option>
-                            <option value="moderate" selected>Moderate (3-5 days/week)</option>
-                            <option value="active">Active (6-7 days/week)</option>
-                            <option value="very_active">Very Active (2x/day)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Goal Weight (kg)</label>
-                        <input type="number" id="pGoalWeight" min="20" max="500" step="0.1" placeholder="78">
-                    </div>
-                    <div class="form-group">
-                        <label>Calorie Deficit (kcal)</label>
-                        <input type="number" id="pDeficit" min="0" max="2000" value="500">
-                    </div>
+        <!-- ═══ COACHING TAB ═══ -->
+        <div class="tab-panel" id="tab-coaching">
+            <div id="coachingTabContent">
+                <div class="coaching-week-selector" id="coachingWeekSelector"></div>
+                <div id="coachingSummaryCards" class="coaching-summary-cards" style="display:none;"></div>
+                <div class="card" id="coachingReportCard" style="display:none;">
+                    <div class="coaching-report-body" id="coachingReportBody"></div>
                 </div>
-                <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
-                    <button class="btn-save" onclick="saveProfile()">Save Profile</button>
-                </div>
-                <div id="profileMsg" style="margin-top:0.75rem;font-size:0.9rem;color:var(--accent);display:none;"></div>
-
-                <!-- Calculated Goals Display -->
-                <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);">
-                    <div class="card-title" style="margin-bottom:0.75rem;">Calculated Daily Targets</div>
-                    <div class="calc-targets-grid" id="calcTargets">
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">BMR</span><br><span class="mono" id="calcBMR">—</span> kcal</div>
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">TDEE</span><br><span class="mono" id="calcTDEE">—</span> kcal</div>
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">Calorie Goal</span><br><span class="mono" id="calcCalGoal" style="color:var(--accent);">—</span> kcal</div>
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">Protein</span><br><span class="mono" id="calcProt" style="color:var(--protein);">—</span> g</div>
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">Carbs</span><br><span class="mono" id="calcCarbs" style="color:var(--carbs);">—</span> g</div>
-                        <div><span style="color:var(--text-dim);font-size:0.78rem;">Fat</span><br><span class="mono" id="calcFat" style="color:var(--fat);">—</span> g</div>
-                    </div>
+                <div id="coachingActionsCard" style="display:none;"></div>
+                <div class="coaching-empty" id="coachingEmpty">
+                    <div class="empty-icon">&#129504;</div>
+                    <div class="empty-title">No coaching reports yet</div>
+                    <p>Your health coach agent will post weekly reports here every Sunday.</p>
                 </div>
             </div>
         </div>
@@ -873,6 +973,71 @@
             </div>
             <button class="btn-save" onclick="submitHealth()">Log Measurement</button>
             <div class="modal-msg" id="mhMsg"></div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div class="modal-overlay" id="modal-profile">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">Profile Settings</span>
+                <button class="modal-close" onclick="closeModal('profile')">&times;</button>
+            </div>
+            <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:1rem;">
+                Your calorie goals and macro targets are calculated from this data.
+            </p>
+            <div class="profile-form" id="profileForm">
+                <div class="form-group">
+                    <label>Age</label>
+                    <input type="number" id="pAge" min="10" max="120" placeholder="30">
+                </div>
+                <div class="form-group">
+                    <label>Sex</label>
+                    <select id="pSex">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Height (cm)</label>
+                    <input type="number" id="pHeight" min="50" max="300" step="0.1" placeholder="175">
+                </div>
+                <div class="form-group">
+                    <label>Current Weight (kg)</label>
+                    <input type="number" id="pWeight" min="20" max="500" step="0.1" placeholder="85">
+                </div>
+                <div class="form-group">
+                    <label>Activity Level</label>
+                    <select id="pActivity">
+                        <option value="sedentary">Sedentary (desk job)</option>
+                        <option value="light">Light (1-3 days/week)</option>
+                        <option value="moderate" selected>Moderate (3-5 days/week)</option>
+                        <option value="active">Active (6-7 days/week)</option>
+                        <option value="very_active">Very Active (2x/day)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Goal Weight (kg)</label>
+                    <input type="number" id="pGoalWeight" min="20" max="500" step="0.1" placeholder="78">
+                </div>
+                <div class="form-group">
+                    <label>Calorie Deficit (kcal)</label>
+                    <input type="number" id="pDeficit" min="0" max="2000" value="500">
+                </div>
+            </div>
+            <button class="btn-save" onclick="saveProfile()" style="margin-top:1rem;">Save Profile</button>
+            <div id="profileMsg" style="margin-top:0.75rem;font-size:0.9rem;color:var(--accent);display:none;"></div>
+            <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
+                <div class="card-title" style="margin-bottom:0.75rem;">Calculated Daily Targets</div>
+                <div class="calc-targets-grid" id="calcTargets">
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">BMR</span><br><span class="mono" id="calcBMR">—</span> kcal</div>
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">TDEE</span><br><span class="mono" id="calcTDEE">—</span> kcal</div>
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">Calorie Goal</span><br><span class="mono" id="calcCalGoal" style="color:var(--accent);">—</span> kcal</div>
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">Protein</span><br><span class="mono" id="calcProt" style="color:var(--protein);">—</span> g</div>
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">Carbs</span><br><span class="mono" id="calcCarbs" style="color:var(--carbs);">—</span> g</div>
+                    <div><span style="color:var(--text-dim);font-size:0.78rem;">Fat</span><br><span class="mono" id="calcFat" style="color:var(--fat);">—</span> g</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1126,17 +1291,20 @@
             d.setDate(d.getDate() + delta);
             currentDate = d.toISOString().split('T')[0];
             document.getElementById('dateSelector').value = currentDate;
+            coachingPanelOpen = false;
             loadOverview();
         }
 
         function onDateChange() {
             currentDate = document.getElementById('dateSelector').value;
+            coachingPanelOpen = false;
             loadOverview();
         }
 
         function goToday() {
             currentDate = new Date().toISOString().split('T')[0];
             document.getElementById('dateSelector').value = currentDate;
+            coachingPanelOpen = false;
             loadOverview();
         }
 
@@ -1152,7 +1320,7 @@
 
                     if (tab.dataset.tab === 'charts') loadCharts(7);
                     if (tab.dataset.tab === 'health') loadHealth();
-                    if (tab.dataset.tab === 'profile') loadProfile();
+                    if (tab.dataset.tab === 'coaching') loadCoachingTab();
                 });
             });
         }
@@ -1163,6 +1331,7 @@
         async function loadOverview() {
             try {
                 loadGamification(); // Refresh gamification status
+                loadDailyCoaching(); // Refresh daily coaching panel
                 const res = await fetch(`${API}/api/daily-summary?date=${currentDate}`);
                 const data = await res.json();
                 
@@ -1821,6 +1990,192 @@
         }
 
         // ═══════════════════════════════════════════════════════════════════
+        // DAILY COACHING PANEL
+        // ═══════════════════════════════════════════════════════════════════
+        let coachingPanelOpen = false;
+
+        function toggleCoachingPanel() {
+            coachingPanelOpen = !coachingPanelOpen;
+            document.getElementById('coachingExpanded').style.display = coachingPanelOpen ? 'block' : 'none';
+            document.getElementById('coachingChevron').classList.toggle('open', coachingPanelOpen);
+        }
+
+        async function loadDailyCoaching() {
+            try {
+                const res = await fetch(`${API}/api/coaching/daily?date=${currentDate}`);
+                const data = await res.json();
+                const panel = document.getElementById('dailyCoachingPanel');
+
+                if (!data.coaching) {
+                    panel.style.display = 'none';
+                    return;
+                }
+
+                panel.style.display = 'block';
+                const c = data.coaching;
+
+                // Priority text
+                document.getElementById('coachingPriority').textContent = c.top_priority || 'Check your coaching tip';
+
+                // Protein badge
+                const badge = document.getElementById('coachingProteinBadge');
+                const statusMap = {
+                    'on_track': { text: 'protein \u2713', cls: 'on-track' },
+                    'low': { text: 'protein low', cls: 'low' },
+                    'critical': { text: 'protein \u26A0', cls: 'critical' },
+                    'exceeded': { text: 'protein ++', cls: 'exceeded' },
+                    'unknown': { text: '', cls: '' }
+                };
+                const st = statusMap[c.protein_status] || statusMap['unknown'];
+                badge.textContent = st.text;
+                badge.className = 'coaching-protein-badge ' + st.cls;
+
+                // Full text
+                const textHtml = c.coaching_text.split('\n').filter(l => l.trim()).map(l => '<p>' + l + '</p>').join('');
+                document.getElementById('coachingFullText').innerHTML = textHtml;
+
+                // Meta
+                const meta = [];
+                if (c.meal_count) meta.push('After meal ' + c.meal_count);
+                if (c.calories_so_far) meta.push(Math.round(c.calories_so_far) + ' kcal so far');
+                if (c.calories_remaining > 0) meta.push(Math.round(c.calories_remaining) + ' remaining');
+                document.getElementById('coachingMeta').textContent = meta.join(' \u00B7 ');
+
+                // Reset expanded state on date change
+                document.getElementById('coachingExpanded').style.display = coachingPanelOpen ? 'block' : 'none';
+                document.getElementById('coachingChevron').classList.toggle('open', coachingPanelOpen);
+
+            } catch (err) {
+                console.error('Daily coaching load error:', err);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // COACHING TAB (Weekly Reports)
+        // ═══════════════════════════════════════════════════════════════════
+        let coachingReports = [];
+        let coachingTabLoaded = false;
+
+        async function loadCoachingTab() {
+            try {
+                const res = await fetch(`${API}/api/coaching/reports?limit=12`);
+                const data = await res.json();
+                coachingReports = data.reports || [];
+                coachingTabLoaded = true;
+
+                if (coachingReports.length === 0) {
+                    document.getElementById('coachingEmpty').style.display = 'block';
+                    document.getElementById('coachingWeekSelector').innerHTML = '';
+                    document.getElementById('coachingSummaryCards').style.display = 'none';
+                    document.getElementById('coachingReportCard').style.display = 'none';
+                    document.getElementById('coachingActionsCard').style.display = 'none';
+                    return;
+                }
+
+                document.getElementById('coachingEmpty').style.display = 'none';
+
+                // Render week pills
+                const selector = document.getElementById('coachingWeekSelector');
+                selector.innerHTML = coachingReports.map((r, i) => {
+                    const ws = new Date(r.week_start + 'T00:00:00');
+                    const we = new Date(r.week_end + 'T00:00:00');
+                    const label = ws.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '\u2013' + we.toLocaleDateString('en-US', { day: 'numeric' });
+                    return '<span class="coaching-week-pill' + (i === 0 ? ' active' : '') + '" onclick="selectCoachingWeek(' + i + ', this)">' + label + '</span>';
+                }).join('');
+
+                // Show first report
+                renderCoachingReport(coachingReports[0]);
+
+            } catch (err) {
+                console.error('Coaching tab load error:', err);
+            }
+        }
+
+        function selectCoachingWeek(index, pill) {
+            document.querySelectorAll('.coaching-week-pill').forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+            renderCoachingReport(coachingReports[index]);
+        }
+
+        function renderCoachingReport(report) {
+            // Summary cards
+            const summaryDiv = document.getElementById('coachingSummaryCards');
+            const actionsDiv = document.getElementById('coachingActionsCard');
+            let summary = null;
+
+            try {
+                if (report.summary_json) summary = JSON.parse(report.summary_json);
+            } catch (e) {}
+
+            if (summary) {
+                summaryDiv.style.display = 'flex';
+                let cards = '';
+
+                if (summary.avg_calories != null) {
+                    const calColor = summary.calorie_goal && summary.avg_calories <= summary.calorie_goal ? 'var(--accent)' : 'var(--danger)';
+                    cards += '<div class="coaching-stat-card"><div class="label">Avg Calories</div><div class="value" style="color:' + calColor + '">' + Math.round(summary.avg_calories) + '</div></div>';
+                }
+                if (summary.weight_change != null) {
+                    const arrow = summary.weight_change < 0 ? '\u2193' : summary.weight_change > 0 ? '\u2191' : '\u2192';
+                    const wColor = summary.weight_change <= 0 ? 'var(--accent)' : 'var(--warning)';
+                    cards += '<div class="coaching-stat-card"><div class="label">Weight Change</div><div class="value" style="color:' + wColor + '">' + arrow + ' ' + Math.abs(summary.weight_change) + ' kg</div></div>';
+                }
+                if (summary.days_on_track != null) {
+                    cards += '<div class="coaching-stat-card"><div class="label">Days on Track</div><div class="value">' + summary.days_on_track + '/' + (summary.days_total || 7) + '</div></div>';
+                }
+                if (summary.grade) {
+                    cards += '<div class="coaching-stat-card"><div class="label">Grade</div><div class="coaching-grade">' + summary.grade + '</div></div>';
+                }
+                if (summary.streak_days != null) {
+                    cards += '<div class="coaching-stat-card"><div class="label">Streak</div><div class="value">' + summary.streak_days + ' days</div></div>';
+                }
+                summaryDiv.innerHTML = cards;
+
+                // Action items
+                if (summary.action_items && summary.action_items.length > 0) {
+                    actionsDiv.style.display = 'block';
+                    actionsDiv.innerHTML = '<div class="coaching-actions-card"><div class="action-title">Action Items for Next Week</div>' +
+                        summary.action_items.map(item => '<div class="action-item">' + item + '</div>').join('') +
+                        '</div>';
+                } else {
+                    actionsDiv.style.display = 'none';
+                }
+            } else {
+                summaryDiv.style.display = 'none';
+                actionsDiv.style.display = 'none';
+            }
+
+            // Report text
+            const reportCard = document.getElementById('coachingReportCard');
+            const reportBody = document.getElementById('coachingReportBody');
+
+            if (report.report_text) {
+                reportCard.style.display = 'block';
+                reportBody.innerHTML = formatReportText(report.report_text);
+            } else {
+                reportCard.style.display = 'none';
+            }
+        }
+
+        function formatReportText(text) {
+            const lines = text.split('\n');
+            let html = '';
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                // ALL CAPS lines = section headers
+                if (/^[A-Z\s\u2014\u2013\-\d,.:!]+$/.test(trimmed) && trimmed.length > 3) {
+                    html += '<div class="section-header">' + trimmed + '</div>';
+                } else if (trimmed.startsWith('- ')) {
+                    html += '<div class="bullet-item">' + trimmed.substring(2) + '</div>';
+                } else {
+                    html += '<p>' + trimmed + '</p>';
+                }
+            }
+            return html;
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
         // PROFILE
         // ═══════════════════════════════════════════════════════════════════
         async function loadProfile() {
@@ -1882,8 +2237,8 @@
                 const msg = document.getElementById('profileMsg');
                 msg.textContent = data.message || 'Saved!';
                 msg.style.display = 'block';
-                setTimeout(() => msg.style.display = 'none', 3000);
-                
+                setTimeout(() => { msg.style.display = 'none'; closeModal('profile'); }, 1500);
+
                 if (data.profile) updateCalcTargets(data.profile);
                 loadOverview();
             } catch (err) {

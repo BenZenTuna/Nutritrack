@@ -325,6 +325,122 @@ When summarizing nutrition data for the user:
 - If over on calories, be encouraging not judgmental
 - Use the user's actual numbers, not generic advice
 
+## Daily Post-Meal Coaching
+
+After EVERY time you log a food entry with POST /api/food, you MUST also update today's coaching tip. This is how it works:
+
+1. Log the food: POST /api/food
+2. Fetch the current daily summary: GET /api/daily-summary
+3. Analyze the current state (calories remaining, macro balance, meal count)
+4. Write a short coaching tip and save it: PUT /api/coaching/daily
+
+PUT /api/coaching/daily
+Content-Type: application/json
+
+```json
+{
+    "coaching_date": "2026-02-23",
+    "coaching_text": "Good protein start with eggs at breakfast. You have 1,200 kcal left and need about 80g more protein. Aim for chicken or fish at lunch to front-load protein. Keep carbs moderate — you've already had toast and oatmeal. A light dinner with salad and lean protein would close this day perfectly.",
+    "meal_count": 2,
+    "calories_so_far": 850,
+    "calories_remaining": 1200,
+    "protein_status": "low",
+    "top_priority": "Get 80g more protein — chicken or fish at lunch"
+}
+```
+
+### How to write coaching_text
+
+Keep it conversational, 3-5 sentences max. Structure it as:
+1. Quick assessment of what they've eaten so far (positive note first)
+2. What's missing or needs attention (be specific with numbers)
+3. Concrete suggestion for the next meal
+4. Optional: one warning if something is trending badly (e.g., fat already at 90% of goal)
+
+### How to set protein_status
+
+Look at the daily summary. Calculate protein eaten vs protein goal:
+- "on_track": protein is at or above expected pace for this time of day (e.g., 50%+ of goal by lunch)
+- "low": protein is behind pace but recoverable (e.g., 30% of goal by lunch)
+- "critical": protein is severely behind and will be very hard to catch up (e.g., <20% of goal by dinner)
+- "exceeded": protein already exceeds the daily goal
+
+### How to set top_priority
+
+One short sentence that the user sees at a glance without expanding the panel. This is the MOST IMPORTANT thing to focus on for the rest of the day. Examples:
+- "Get 80g more protein — chicken or fish at lunch"
+- "You're on track! Keep dinner under 600 kcal"
+- "Fat is at 95% of goal — avoid fried food and sauces tonight"
+- "Great day so far — a light salad dinner gets you to elite 💠"
+- "Over calorie goal by 200 — consider skipping the evening snack"
+
+### When to update
+
+Update the daily coaching tip EVERY time you log food. The tip should reflect the latest state. After breakfast the tip talks about lunch and dinner planning. After lunch it focuses on dinner. After dinner it either congratulates or suggests a light evening.
+
+GET /api/coaching/daily?date=YYYY-MM-DD
+Returns the current tip for a given date (defaults to today). The dashboard calls this automatically.
+
+## Weekly Coaching Report
+
+Your weekly coaching report appears on the dashboard's Coaching tab. Write it every Sunday or when the user asks.
+
+### Writing a Report
+
+1. GET /api/weekly-report — fetch weekly aggregated data
+2. GET /api/gamification — fetch streak and XP
+3. GET /api/food/range?start=MONDAY&end=SUNDAY — fetch individual food entries
+4. Analyze all data
+5. POST /api/coaching/report — save to dashboard
+
+POST /api/coaching/report
+Content-Type: application/json
+
+```json
+{
+    "week_start": "2026-02-17",
+    "week_end": "2026-02-23",
+    "report_text": "WEEKLY HEALTH REPORT — Feb 17–23, 2026\n\nTHE NUMBERS\nYou averaged 1,850 kcal per day against a 2,100 goal...",
+    "summary_json": "{\"avg_calories\": 1850, \"calorie_goal\": 2100, \"avg_protein_g\": 95, \"protein_goal_g\": 120, \"weight_start\": 84.2, \"weight_end\": 83.8, \"weight_change\": -0.4, \"streak_days\": 5, \"days_on_track\": 5, \"days_total\": 7, \"grade\": \"B+\", \"action_items\": [\"Add eggs to breakfast for +25g protein\", \"Replace afternoon biscuits with Greek yogurt\", \"Log a 30-min walk on rest days\"]}"
+}
+```
+
+### Report Text Format
+
+Use these section headers on their own lines in ALL CAPS:
+WEEKLY HEALTH REPORT — [date range]
+THE NUMBERS
+WEIGHT CHECK
+WINS THIS WEEK
+WATCH OUT
+FOOD SPOTLIGHT
+ACTIVITY SUMMARY
+ACTION ITEMS FOR NEXT WEEK
+STREAK AND GAMIFICATION
+
+Use "- " prefix for bullet points. Dashboard auto-formats these.
+
+### summary_json Fields (all optional)
+
+avg_calories, calorie_goal, avg_protein_g, protein_goal_g, weight_start, weight_end, weight_change, streak_days, days_on_track, days_total (always 7), grade (A+ through F), action_items (array of 3 strings)
+
+### Grading Scale
+
+A+: All 7 days under goal, protein met 6+, weight trending right
+A: 6+ days under, protein met 5+, good activity
+B+: 5 days under, decent protein, some activity
+B: 4-5 days under, macros roughly on track
+C+: 3-4 days under, protein consistently low
+C: 2-3 days under, poor macro balance
+D: 1-2 days under, minimal effort
+F: 0-1 days under, no logging most days
+
+### Reading Reports
+
+GET /api/coaching/reports — All reports, newest first (default limit 12)
+GET /api/coaching/reports/latest — Most recent only
+DELETE /api/coaching/reports/{id} — Delete a report
+
 ## Troubleshooting
 
 - **Server not responding**: Check if Docker container is running (`docker ps | grep nutritrack`) or if the Python process is active
