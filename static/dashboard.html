@@ -939,36 +939,6 @@
                 // Points
                 document.getElementById('daily-points').textContent = data.today_points;
 
-                // Macro status: "good" (green) or "over"/"low" (red)
-                const tags = data.tags || [];
-
-                const proteinEl = document.getElementById('status-protein');
-                if (tags.includes('protein_met')) {
-                    proteinEl.textContent = 'good';
-                    proteinEl.style.color = '#3ecf8e';
-                } else {
-                    proteinEl.textContent = 'low';
-                    proteinEl.style.color = '#f87171';
-                }
-
-                const carbsEl = document.getElementById('status-carbs');
-                if (tags.includes('carbs_good')) {
-                    carbsEl.textContent = 'good';
-                    carbsEl.style.color = '#3ecf8e';
-                } else {
-                    carbsEl.textContent = 'over';
-                    carbsEl.style.color = '#f87171';
-                }
-
-                const fatEl = document.getElementById('status-fat');
-                if (tags.includes('fat_good')) {
-                    fatEl.textContent = 'good';
-                    fatEl.style.color = '#3ecf8e';
-                } else {
-                    fatEl.textContent = 'over';
-                    fatEl.style.color = '#f87171';
-                }
-
             } catch (err) {
                 console.error('Gamification load error:', err);
             }
@@ -1043,6 +1013,28 @@
                 updateMacroBar('protein', intake.protein_g, goals.protein_goal_g);
                 updateMacroBar('carbs', intake.carbs_g, goals.carbs_goal_g);
                 updateMacroBar('fat', intake.fat_g, goals.fat_goal_g);
+
+                // Macro status labels (calculated from daily-summary, not gamification)
+                const proteinEl = document.getElementById('status-protein');
+                if (intake.protein_g >= goals.protein_goal_g) {
+                    proteinEl.textContent = 'good'; proteinEl.style.color = '#3ecf8e';
+                } else {
+                    proteinEl.textContent = 'low'; proteinEl.style.color = '#f87171';
+                }
+
+                const carbsEl = document.getElementById('status-carbs');
+                if (intake.carbs_g <= goals.carbs_goal_g) {
+                    carbsEl.textContent = 'good'; carbsEl.style.color = '#3ecf8e';
+                } else {
+                    carbsEl.textContent = 'over'; carbsEl.style.color = '#f87171';
+                }
+
+                const fatEl = document.getElementById('status-fat');
+                if (intake.fat_g <= goals.fat_goal_g) {
+                    fatEl.textContent = 'good'; fatEl.style.color = '#3ecf8e';
+                } else {
+                    fatEl.textContent = 'over'; fatEl.style.color = '#f87171';
+                }
 
                 // Quick stats
                 document.getElementById('currentWeight').textContent = latest_weight ? latest_weight.weight_kg : '—';
