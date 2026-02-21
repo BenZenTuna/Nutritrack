@@ -301,10 +301,7 @@
                 <span id="best-streak" style="color: var(--text-dim); font-size: 0.78rem; margin-left: 4px;"></span>
             </span>
             <span style="color: var(--border); font-size: 1.2rem;">|</span>
-            <span style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem;">
-                <span style="font-size: 2rem;">⚡</span>
-                <strong id="daily-points" style="font-size: 1.2rem;">0</strong>
-                <span style="color: var(--text-dim); font-size: 0.95rem;">XP</span>
+            <span id="activity-chips" style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem; flex-wrap: wrap;">
             </span>
         </div>
 
@@ -989,8 +986,31 @@
                     bestEl.textContent = '';
                 }
 
-                // Points
-                document.getElementById('daily-points').textContent = data.today_points;
+                // Activity emoji chips
+                const ACTIVITY_EMOJIS = {
+                    'running': '🏃', 'run': '🏃',
+                    'cycling': '🚴', 'bike': '🚴', 'biking': '🚴',
+                    'swimming': '🏊', 'swim': '🏊',
+                    'weight training': '🏋️', 'weights': '🏋️', 'lifting': '🏋️',
+                    'yoga': '🧘',
+                    'hiit': '🔥',
+                    'walking': '🚶', 'walk': '🚶',
+                    'hiking': '🥾',
+                    'dancing': '💃', 'dance': '💃',
+                    'rowing': '🚣',
+                    'basketball': '🏀', 'soccer': '⚽', 'football': '🏈', 'tennis': '🎾',
+                };
+                const chipsEl = document.getElementById('activity-chips');
+                const acts = data.activities_today || [];
+                if (acts.length > 0) {
+                    chipsEl.innerHTML = acts.map(a => {
+                        const key = a.toLowerCase();
+                        const emoji = ACTIVITY_EMOJIS[key] || '💪';
+                        return `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);padding:2px 8px;border-radius:12px;font-size:0.85rem;">${emoji} ${a}</span>`;
+                    }).join('');
+                } else {
+                    chipsEl.innerHTML = '<span style="color:var(--text-dim);font-size:0.85rem;">No activities yet</span>';
+                }
 
             } catch (err) {
                 console.error('Gamification load error:', err);

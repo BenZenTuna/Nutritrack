@@ -690,7 +690,13 @@ def get_gamification_status():
         "SELECT COALESCE(SUM(calories_burned),0) as burned "
         "FROM sport_activities WHERE performed_at BETWEEN ? AND ?", (start, end)
     ).fetchone()
-    
+
+    today_activity_rows = conn.execute(
+        "SELECT activity_type FROM sport_activities WHERE performed_at BETWEEN ? AND ? ORDER BY performed_at",
+        (start, end)
+    ).fetchall()
+    activities_today = [r["activity_type"] for r in today_activity_rows]
+
     today_goals = calculate_daily_goals(profile, today_activity["burned"])
     
     today_stats = {
@@ -771,7 +777,8 @@ def get_gamification_status():
         "today_points": today_gamification["points"],
         "is_elite": today_gamification["is_elite"],
         "calorie_success": today_gamification["calorie_success"],
-        "tags": today_gamification["tags"]
+        "tags": today_gamification["tags"],
+        "activities_today": activities_today,
     }
 
 # ── CSV Export ──────────────────────────────────────────────────────
