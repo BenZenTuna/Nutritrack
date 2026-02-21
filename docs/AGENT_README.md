@@ -990,6 +990,27 @@ curl "http://localhost:8000/api/weekly-report?date=2026-02-16"
 
 ---
 
+#### GET /api/coaching?date=YYYY-MM-DD -- Coaching Tips
+
+Returns contextual coaching tips based on current intake vs goals for the specified date.
+
+**Example curl:**
+
+```bash
+curl "http://localhost:8000/api/coaching?date=2026-02-17"
+```
+
+**Response includes:**
+- `tips`: Array of coaching tip strings (e.g. protein advice, calorie warnings)
+- `intake`: Current day's intake totals
+- `goals`: Calculated daily goals
+
+**Notes:**
+- Coaching tips are also included in the `POST /api/food` response as `coaching_tips`. Share these with the user after logging a meal.
+- Defaults to today if `date` is omitted.
+
+---
+
 ### 4.7 Data Export
 
 #### GET /api/export/csv?type=food&start=YYYY-MM-DD&end=YYYY-MM-DD -- Export CSV

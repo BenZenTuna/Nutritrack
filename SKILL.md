@@ -162,6 +162,16 @@ curl -s -X POST "$NUTRITRACK_URL/api/health" \
 
 All fields are optional — log whatever the user provides.
 
+## Coaching Tips
+
+After logging food, the response includes a `coaching_tips` array with contextual advice based on current intake vs goals. Share these tips with the user naturally.
+
+You can also fetch coaching tips independently:
+```bash
+curl -s "$NUTRITRACK_URL/api/coaching?date=2026-02-17"
+```
+Returns: tips array, current intake, and goals. Use this when the user asks for advice on what to eat next or how they're doing.
+
 ## Reading Data
 
 ### Daily Summary (most useful for "how am I doing?" questions)

@@ -106,6 +106,42 @@ def get_date_range(date_str: str):
     end = datetime.combine(d, datetime.max.time()).isoformat()
     return start, end
 
+# ── Coaching Tips Helper ─────────────────────────────────────────────
+def generate_coaching_tips(profile: dict, intake: dict, goals: dict) -> list:
+    """Generate contextual coaching tips based on current intake vs goals."""
+    tips = []
+    remaining_cal = goals["calorie_goal"] - intake["calories"]
+    remaining_prot = goals["protein_goal_g"] - intake["protein_g"]
+    remaining_carbs = goals["carbs_goal_g"] - intake["carbs_g"]
+    remaining_fat = goals["fat_goal_g"] - intake["fat_g"]
+
+    # Calorie tips
+    if remaining_cal < 0:
+        tips.append(f"You're {abs(round(remaining_cal))} kcal over your goal. Consider a lighter next meal or a short walk to offset.")
+    elif remaining_cal < 200 and remaining_cal >= 0:
+        tips.append(f"Only {round(remaining_cal)} kcal left today. A light snack like veggies or a small fruit would fit well.")
+    elif remaining_cal > 800:
+        tips.append(f"You still have {round(remaining_cal)} kcal available. Make sure to eat enough to fuel your body.")
+
+    # Protein tips
+    if remaining_prot > 30:
+        tips.append(f"You need {round(remaining_prot)}g more protein today. Consider chicken, fish, eggs, or a protein shake.")
+    elif remaining_prot <= 0:
+        tips.append("Great job hitting your protein target!")
+
+    # Fat tips
+    if remaining_fat < 0:
+        tips.append(f"You're {abs(round(remaining_fat))}g over your fat goal. Choose leaner options for your remaining meals.")
+
+    # Carbs tips
+    if remaining_carbs < 0:
+        tips.append(f"Carbs are {abs(round(remaining_carbs))}g over goal. Swap starchy sides for vegetables if eating again today.")
+
+    if not tips:
+        tips.append("You're on track! Keep it up.")
+
+    return tips
+
 # ── Dashboard ────────────────────────────────────────────────────────
 @app.get("/")
 def serve_dashboard():
@@ -157,17 +193,38 @@ def update_profile(profile: ProfileCreate):
 def log_food(entry: FoodEntry):
     conn = get_db()
     logged_at = entry.logged_at or datetime.now().isoformat()
-    
+
     conn.execute("""
         INSERT INTO food_entries (name, calories, protein_g, carbs_g, fat_g, meal_type, quantity, notes, logged_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (entry.name, entry.calories, entry.protein_g, entry.carbs_g, entry.fat_g, entry.meal_type, entry.quantity, entry.notes, logged_at))
     conn.commit()
-    
+
     last_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
     row = conn.execute("SELECT * FROM food_entries WHERE id=?", (last_id,)).fetchone()
+
+    # Generate coaching tips based on updated daily totals
+    tips = []
+    profile_row = conn.execute("SELECT * FROM user_profile ORDER BY id DESC LIMIT 1").fetchone()
+    if profile_row:
+        profile = row_to_dict(profile_row)
+        entry_date = logged_at[:10]
+        start, end = get_date_range(entry_date)
+        totals = conn.execute(
+            "SELECT COALESCE(SUM(calories),0) as cal, COALESCE(SUM(protein_g),0) as prot, "
+            "COALESCE(SUM(carbs_g),0) as carb, COALESCE(SUM(fat_g),0) as fat "
+            "FROM food_entries WHERE logged_at BETWEEN ? AND ?", (start, end)
+        ).fetchone()
+        act = conn.execute(
+            "SELECT COALESCE(SUM(calories_burned),0) as burned "
+            "FROM sport_activities WHERE performed_at BETWEEN ? AND ?", (start, end)
+        ).fetchone()
+        goals = calculate_daily_goals(profile, act["burned"])
+        intake = {"calories": totals["cal"], "protein_g": totals["prot"], "carbs_g": totals["carb"], "fat_g": totals["fat"]}
+        tips = generate_coaching_tips(profile, intake, goals)
+
     conn.close()
-    return {"entry": row_to_dict(row), "message": f"Logged: {entry.name} ({entry.calories} kcal)"}
+    return {"entry": row_to_dict(row), "message": f"Logged: {entry.name} ({entry.calories} kcal)", "coaching_tips": tips}
 
 @app.get("/api/food")
 def get_food(date: Optional[str] = None):
@@ -454,6 +511,37 @@ def get_daily_summary(date: Optional[str] = None):
         "activities": activities,
         "latest_weight": row_to_dict(weight_row) if weight_row else None,
     }
+
+# ── Coaching Endpoint ────────────────────────────────────────────────
+@app.get("/api/coaching")
+def get_coaching(date: Optional[str] = None):
+    """Get coaching tips for the given date based on current intake vs goals."""
+    target_date = date or datetime.now().date().isoformat()
+    start, end = get_date_range(target_date)
+
+    conn = get_db()
+    profile_row = conn.execute("SELECT * FROM user_profile ORDER BY id DESC LIMIT 1").fetchone()
+    if not profile_row:
+        conn.close()
+        return {"tips": [], "error": "No profile set."}
+    profile = row_to_dict(profile_row)
+
+    totals = conn.execute(
+        "SELECT COALESCE(SUM(calories),0) as cal, COALESCE(SUM(protein_g),0) as prot, "
+        "COALESCE(SUM(carbs_g),0) as carb, COALESCE(SUM(fat_g),0) as fat "
+        "FROM food_entries WHERE logged_at BETWEEN ? AND ?", (start, end)
+    ).fetchone()
+    act = conn.execute(
+        "SELECT COALESCE(SUM(calories_burned),0) as burned "
+        "FROM sport_activities WHERE performed_at BETWEEN ? AND ?", (start, end)
+    ).fetchone()
+    conn.close()
+
+    goals = calculate_daily_goals(profile, act["burned"])
+    intake = {"calories": totals["cal"], "protein_g": totals["prot"], "carbs_g": totals["carb"], "fat_g": totals["fat"]}
+    tips = generate_coaching_tips(profile, intake, goals)
+
+    return {"date": target_date, "tips": tips, "intake": intake, "goals": goals}
 
 # ── Weekly Report ────────────────────────────────────────────────────
 @app.get("/api/weekly-report")
