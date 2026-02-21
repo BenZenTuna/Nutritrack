@@ -298,6 +298,7 @@
                 <span id="streak-icon" style="font-size: 2rem;">🔥</span>
                 <strong id="streak-days" style="font-size: 1.2rem;">0</strong>
                 <span style="color: var(--text-dim); font-size: 0.95rem;">day streak</span>
+                <span id="best-streak" style="color: var(--text-dim); font-size: 0.78rem; margin-left: 4px;"></span>
             </span>
             <span style="color: var(--border); font-size: 1.2rem;">|</span>
             <span style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem;">
@@ -979,6 +980,14 @@
                 // Streak
                 document.getElementById('streak-days').textContent = data.streak_days;
                 document.getElementById('streak-icon').textContent = data.is_elite ? '💠' : '🔥';
+
+                // Best streak
+                const bestEl = document.getElementById('best-streak');
+                if (data.best_streak && data.best_streak > 0) {
+                    bestEl.textContent = `(best: ${data.best_streak})`;
+                } else {
+                    bestEl.textContent = '';
+                }
 
                 // Points
                 document.getElementById('daily-points').textContent = data.today_points;

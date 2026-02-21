@@ -708,32 +708,66 @@ def get_gamification_status():
         d = today - timedelta(days=i)
         ds = d.isoformat()
         s, e = get_date_range(ds)
-        
+
         day_food = conn.execute(
             "SELECT COALESCE(SUM(calories),0) as cal "
             "FROM food_entries WHERE logged_at BETWEEN ? AND ?", (s, e)
         ).fetchone()
-        
+
         # If no food logged, streak breaks (unless we allow skip days? For now, break)
         if day_food["cal"] == 0:
             break
-            
+
         day_activity = conn.execute(
             "SELECT COALESCE(SUM(calories_burned),0) as burned "
             "FROM sport_activities WHERE performed_at BETWEEN ? AND ?", (s, e)
         ).fetchone()
-        
+
         day_goals = calculate_daily_goals(profile, day_activity["burned"])
-        
+
         if day_food["cal"] <= day_goals["calorie_goal"]:
             streak_count += 1
         else:
             break
-            
+
+    # Calculate best streak over last 180 days using efficient GROUP BY
+    lookback_start = datetime.combine(today - timedelta(days=180), datetime.min.time()).isoformat()
+    lookback_end = datetime.combine(today, datetime.max.time()).isoformat()
+
+    daily_cals = conn.execute("""
+        SELECT DATE(logged_at) as day, COALESCE(SUM(calories),0) as cal
+        FROM food_entries
+        WHERE logged_at BETWEEN ? AND ?
+        GROUP BY DATE(logged_at)
+        ORDER BY day
+    """, (lookback_start, lookback_end)).fetchall()
+
+    daily_burned = conn.execute("""
+        SELECT DATE(performed_at) as day, COALESCE(SUM(calories_burned),0) as burned
+        FROM sport_activities
+        WHERE performed_at BETWEEN ? AND ?
+        GROUP BY DATE(performed_at)
+    """, (lookback_start, lookback_end)).fetchall()
+
     conn.close()
-    
+
+    burned_map = {r["day"]: r["burned"] for r in daily_burned}
+
+    best_streak = 0
+    current_run = 0
+    for row in daily_cals:
+        day_burned = burned_map.get(row["day"], 0)
+        day_goals = calculate_daily_goals(profile, day_burned)
+        if row["cal"] <= day_goals["calorie_goal"]:
+            current_run += 1
+            if current_run > best_streak:
+                best_streak = current_run
+        else:
+            current_run = 0
+
     return {
         "streak_days": streak_count,
+        "best_streak": best_streak,
         "today_points": today_gamification["points"],
         "is_elite": today_gamification["is_elite"],
         "calorie_success": today_gamification["calorie_success"],
