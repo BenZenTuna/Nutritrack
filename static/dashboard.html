@@ -395,21 +395,8 @@
                 </div>
             </div>
 
-            <!-- 4. Activities Today -->
+            <!-- 4. Status (weights & deficit) -->
             <div class="card" style="margin-bottom:1rem;">
-                <div class="card-header">
-                    <span class="card-title">Activities Today</span>
-                    <button class="add-entry-btn" onclick="openModal('activity')" title="Add activity">+</button>
-                </div>
-                <div id="activityList"></div>
-                <div class="empty-state" id="activityEmpty" style="display:none;">
-                    <div class="icon">🏃</div>
-                    <p>No activities logged today.</p>
-                </div>
-            </div>
-
-            <!-- 5. Status (weights & deficit) -->
-            <div class="card">
                 <div class="card-header">
                     <span class="card-title">Status</span>
                     <button class="add-entry-btn" onclick="openModal('weight')" title="Log weight">+</button>
@@ -439,6 +426,19 @@
                             <span id="deficitTarget">500</span> <span class="card-unit">kcal</span>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- 5. Activities Today -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-title">Activities Today</span>
+                    <button class="add-entry-btn" onclick="openModal('activity')" title="Add activity">+</button>
+                </div>
+                <div id="activityList"></div>
+                <div class="empty-state" id="activityEmpty" style="display:none;">
+                    <div class="icon">🏃</div>
+                    <p>No activities logged today.</p>
                 </div>
             </div>
         </div>
