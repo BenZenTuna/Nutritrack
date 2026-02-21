@@ -242,15 +242,27 @@
     .sub-tab:hover { color: var(--text); }
     .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-    /* ─── Often Used Grid ───────────────────────────────────── */
-    .often-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; padding: 0.75rem 0; }
-    .often-card {
-        background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-        padding: 0.65rem 0.75rem; cursor: pointer; transition: all 0.15s;
+    /* ─── Often Used List ───────────────────────────────────── */
+    .often-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border);
+        gap: 10px;
     }
-    .often-card:hover { border-color: var(--accent); }
-    .often-card-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .often-card-meta { font-size: 0.72rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+    .often-item:last-child { border-bottom: none; }
+    .often-item-info { flex: 1; min-width: 0; }
+    .often-item-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+    .often-item-macros { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; font-family: 'Space Mono', monospace; }
+    .often-add-btn {
+        width: 36px; height: 36px; border-radius: 50%;
+        border: 1px solid var(--accent); background: transparent;
+        color: var(--accent); font-size: 1.3rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0; transition: all 0.2s;
+    }
+    .often-add-btn:hover { background: var(--accent); color: #000; }
+    .often-add-btn:active { transform: scale(0.9); }
 
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 768px) {
@@ -436,14 +448,10 @@
                     </div>
                 </div>
                 <div id="oftenUsedPanel" style="display:none;">
-                    <div style="display:flex;justify-content:flex-end;padding:0.5rem 0;">
-                        <button onclick="refreshOftenUsed()" style="padding:0.3rem 0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:0.75rem;cursor:pointer;">Refresh</button>
-                    </div>
-                    <div id="oftenUsedGrid" class="often-grid"></div>
-                    <div class="empty-state" id="oftenEmpty" style="display:none;">
-                        <div class="icon">🔄</div>
-                        <p>No frequently used foods yet. Log more meals and click Refresh to populate.</p>
-                    </div>
+                    <div id="often-used-list"></div>
+                    <p style="text-align:center; color: var(--text-dim); font-size: 0.75rem; margin-top: 16px;">
+                        💡 Tell your agent: <em>"update my often used tab"</em>
+                    </p>
                 </div>
             </div>
 
@@ -1319,20 +1327,19 @@
             try {
                 const res = await fetch(`${API}/api/food/often-used`);
                 const data = await res.json();
-                const grid = document.getElementById('oftenUsedGrid');
-                const empty = document.getElementById('oftenEmpty');
+                const list = document.getElementById('often-used-list');
 
-                if (data.entries.length === 0) {
-                    grid.innerHTML = '';
-                    empty.style.display = 'block';
+                if (!data.items || data.items.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><p>No often-used foods yet. Tell your agent to curate your list!</p></div>';
                     return;
                 }
-                empty.style.display = 'none';
-                grid.innerHTML = data.entries.map(e => `
-                    <div class="often-card" onclick="quickAddOftenUsed(${e.id}, '${e.name.replace(/'/g, "\\'")}', ${e.calories})" title="Click to add">
-                        <div class="often-card-name">${e.name}</div>
-                        <div class="often-card-meta">${Math.round(e.calories)} kcal · P${Math.round(e.protein_g)} C${Math.round(e.carbs_g)} F${Math.round(e.fat_g)}</div>
-                        <div class="often-card-meta" style="margin-top:2px;">${e.meal_type} · ${e.use_count}x</div>
+                list.innerHTML = data.items.map(e => `
+                    <div class="often-item">
+                        <div class="often-item-info">
+                            <span class="often-item-name">${e.name}</span>
+                            <span class="often-item-macros">${Math.round(e.calories)} kcal · P${Math.round(e.protein_g)} C${Math.round(e.carbs_g)} F${Math.round(e.fat_g)}</span>
+                        </div>
+                        <button class="often-add-btn" onclick="addOftenUsed(${e.id}, this)">+</button>
                     </div>
                 `).join('');
             } catch (err) {
@@ -1340,25 +1347,18 @@
             }
         }
 
-        async function quickAddOftenUsed(id, name, cal) {
+        async function addOftenUsed(id, btn) {
             try {
+                btn.textContent = '…';
                 const res = await fetch(`${API}/api/food/often-used/${id}/add`, { method: 'POST' });
                 const data = await res.json();
-                showToast(`Added: ${name} (${Math.round(cal)} kcal)`);
-                loadOverview();
-            } catch (err) {
-                console.error('Quick add error:', err);
-            }
-        }
-
-        async function refreshOftenUsed() {
-            try {
-                const res = await fetch(`${API}/api/food/often-used/refresh`, { method: 'POST' });
-                const data = await res.json();
+                btn.textContent = '✓';
                 showToast(data.message);
-                loadOftenUsed();
+                loadOverview();
+                setTimeout(() => btn.textContent = '+', 1200);
             } catch (err) {
-                console.error('Refresh error:', err);
+                btn.textContent = '+';
+                console.error('Quick add error:', err);
             }
         }
 

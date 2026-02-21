@@ -411,15 +411,24 @@ curl -X DELETE http://localhost:8000/api/food/1
 
 ---
 
-#### Often Used Foods
+#### Often Used Foods (Agent-Curated)
 
-NutriTrack aggregates frequently logged foods. Use these endpoints for quick re-logging:
+The "Often Used" tab is **agent-curated**, not auto-generated. You read raw history, deduplicate/normalize, and write a clean list.
 
-**POST /api/food/often-used/refresh** -- Recalculates often-used foods from the last 90 days (foods logged 2+ times).
+**GET /api/food/history/frequent** — Raw frequency data grouped by food name. Returns `count`, `min_cal`, `avg_cal`, `max_cal`, and macro ranges. Use this as input for curation.
 
-**GET /api/food/often-used** -- Returns the list of often-used foods sorted by use count.
+**PUT /api/food/often-used** — Replaces the entire curated list (max 15 items). Send `{"items": [{"name": "Boiled Egg (1 egg)", "calories": 78, "protein_g": 6, "carbs_g": 1, "fat_g": 5, "meal_type": "breakfast"}, ...]}`. Array order = display order on dashboard.
 
-**POST /api/food/often-used/{id}/add** -- Quick-adds an often-used food as a new food entry for today.
+**GET /api/food/often-used** — Returns the curated list ordered by `sort_order`. Response key is `items`.
+
+**POST /api/food/often-used/{id}/add** — Quick-adds an often-used food as a new food entry for today.
+
+**Curation rules:**
+- Merge duplicates (case-insensitive, ignore quantity suffixes)
+- Name format: `"Food Name (amount unit)"` — one minimum base portion per item
+- Discard junk/placeholder entries
+- Sort by frequency/usefulness (most useful first)
+- Max 15 items
 
 ---
 

@@ -91,6 +91,17 @@ class HealthEntry(BaseModel):
     notes: Optional[str] = None
     measured_at: Optional[str] = None
 
+class OftenUsedItem(BaseModel):
+    name: str
+    calories: float = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+    meal_type: str = "snack"
+
+class OftenUsedUpdate(BaseModel):
+    items: list[OftenUsedItem]
+
 # ── Helper ───────────────────────────────────────────────────────────
 def row_to_dict(row):
     if row is None: return None
@@ -256,66 +267,101 @@ def search_food(q: str = Query(..., min_length=1)):
     conn.close()
     return {"results": rows_to_list(rows), "count": len(rows)}
 
-# ── Often Used Foods ─────────────────────────────────────────────────
-@app.post("/api/food/often-used/refresh")
-def refresh_often_used():
-    """Recalculate often-used foods from the last 90 days of food entries."""
+# ── Often Used Foods (Agent-Curated) ─────────────────────────────────
+@app.get("/api/food/history/frequent")
+def get_frequent_foods(days: int = 14):
+    """Get frequency-sorted food history for agent analysis. Agent uses this to build the often-used list."""
     conn = get_db()
-    cutoff = (datetime.now() - timedelta(days=90)).isoformat()
-    conn.execute("DELETE FROM often_used_foods")
-    conn.execute("""
-        INSERT INTO often_used_foods (name, calories, protein_g, carbs_g, fat_g, meal_type, quantity, use_count, last_used)
+    rows = conn.execute("""
         SELECT name,
-               ROUND(AVG(calories),1),
-               ROUND(AVG(protein_g),1),
-               ROUND(AVG(carbs_g),1),
-               ROUND(AVG(fat_g),1),
                meal_type,
-               quantity,
-               COUNT(*) as cnt,
-               MAX(logged_at)
+               COUNT(*) as times_logged,
+               ROUND(MIN(calories), 1) as min_cal,
+               ROUND(AVG(calories), 1) as avg_cal,
+               ROUND(MAX(calories), 1) as max_cal,
+               ROUND(MIN(protein_g), 1) as min_prot,
+               ROUND(AVG(protein_g), 1) as avg_prot,
+               ROUND(MIN(carbs_g), 1) as min_carb,
+               ROUND(AVG(carbs_g), 1) as avg_carb,
+               ROUND(MIN(fat_g), 1) as min_fat,
+               ROUND(AVG(fat_g), 1) as avg_fat,
+               quantity
         FROM food_entries
-        WHERE logged_at >= ?
-        GROUP BY name, meal_type
-        HAVING cnt >= 2
-        ORDER BY cnt DESC
-        LIMIT 50
-    """, (cutoff,))
-    conn.commit()
-    count = conn.execute("SELECT COUNT(*) FROM often_used_foods").fetchone()[0]
+        WHERE logged_at >= date('now', '-' || ? || ' days')
+        GROUP BY LOWER(TRIM(name))
+        ORDER BY times_logged DESC
+        LIMIT 30
+    """, (days,)).fetchall()
     conn.close()
-    return {"message": f"Refreshed {count} often-used foods.", "count": count}
+
+    return {
+        "days_analyzed": days,
+        "items": rows_to_list(rows),
+        "instruction": "Analyze these items. Deduplicate similar entries, normalize each to its minimum base unit (1 egg, 100g, 1 scoop). Include the unit in the name. Then call PUT /api/food/often-used with the curated list of max 15 items."
+    }
+
+@app.put("/api/food/often-used")
+def update_often_used(data: OftenUsedUpdate):
+    """Replace the entire often-used foods list with agent-curated items."""
+    if len(data.items) > 15:
+        raise HTTPException(status_code=400, detail="Maximum 15 items allowed")
+
+    conn = get_db()
+    conn.execute("DELETE FROM often_used_foods")
+
+    for i, item in enumerate(data.items):
+        conn.execute(
+            "INSERT INTO often_used_foods (name, calories, protein_g, carbs_g, fat_g, meal_type, sort_order) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (item.name, item.calories, item.protein_g, item.carbs_g, item.fat_g,
+             item.meal_type, i)
+        )
+
+    conn.commit()
+    items = conn.execute("SELECT * FROM often_used_foods ORDER BY sort_order").fetchall()
+    conn.close()
+
+    return {
+        "message": f"Often-used list updated with {len(data.items)} items.",
+        "count": len(data.items),
+        "items": rows_to_list(items)
+    }
 
 @app.get("/api/food/often-used")
 def get_often_used():
-    """Get the list of often-used foods, sorted by use count."""
+    """Get the agent-curated often-used foods list."""
     conn = get_db()
-    rows = conn.execute(
-        "SELECT * FROM often_used_foods ORDER BY use_count DESC"
-    ).fetchall()
+    rows = conn.execute("SELECT * FROM often_used_foods ORDER BY sort_order").fetchall()
     conn.close()
-    return {"entries": rows_to_list(rows), "count": len(rows)}
+    return {"items": rows_to_list(rows), "count": len(rows)}
 
 @app.post("/api/food/often-used/{item_id}/add")
-def quick_add_often_used(item_id: int):
-    """Quick-add an often-used food as a new food entry for today."""
+def add_often_used_to_today(item_id: int):
+    """Quick-add one portion of an often-used food item to today's log."""
     conn = get_db()
-    item = conn.execute("SELECT * FROM often_used_foods WHERE id=?", (item_id,)).fetchone()
+    item = conn.execute("SELECT * FROM often_used_foods WHERE id = ?", (item_id,)).fetchone()
+
     if not item:
         conn.close()
-        raise HTTPException(status_code=404, detail="Often-used food not found")
-    item = dict(item)
-    logged_at = datetime.now().isoformat()
-    conn.execute("""
-        INSERT INTO food_entries (name, calories, protein_g, carbs_g, fat_g, meal_type, quantity, logged_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    """, (item["name"], item["calories"], item["protein_g"], item["carbs_g"], item["fat_g"],
-          item["meal_type"], item["quantity"], logged_at))
+        raise HTTPException(status_code=404, detail="Item not found in often-used list")
+
+    now = datetime.now()
+    conn.execute(
+        "INSERT INTO food_entries (name, calories, protein_g, carbs_g, fat_g, meal_type, logged_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (item["name"], item["calories"], item["protein_g"], item["carbs_g"],
+         item["fat_g"], item["meal_type"], now.isoformat())
+    )
     conn.commit()
-    last_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
-    row = conn.execute("SELECT * FROM food_entries WHERE id=?", (last_id,)).fetchone()
     conn.close()
-    return {"entry": row_to_dict(row), "message": f"Added: {item['name']} ({item['calories']} kcal)"}
+
+    today_str = now.strftime("%d.%m.%y")
+    return {
+        "message": f"Added {item['name']} to your {today_str} consumed items",
+        "entry_name": item["name"],
+        "date": today_str,
+        "calories": item["calories"],
+    }
 
 @app.get("/api/food/range")
 def get_food_range(start: str, end: str):

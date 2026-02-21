@@ -222,22 +222,59 @@ curl -s "$NUTRITRACK_URL/api/activity/range?start=2026-02-10&end=2026-02-17"
 curl -s "$NUTRITRACK_URL/api/history/daily-totals?days=30"
 ```
 
-## Often Used Foods
+## Often Used Foods (Agent-Curated)
 
-NutriTrack tracks frequently logged foods. Refresh the list periodically:
+You are the curator of the user's "Often Used" tab. The dashboard does NOT auto-generate this list — you build it by reading raw history, deduplicating, normalizing, and writing a clean list.
+
+### Step 1 — Read raw frequency data
 ```bash
-curl -s -X POST "$NUTRITRACK_URL/api/food/often-used/refresh"
+curl -s "$NUTRITRACK_URL/api/food/history/frequent"
 ```
+Returns items grouped by name with `count`, `min_cal/avg_cal/max_cal`, etc. This is your raw material.
 
-Get the list of often-used foods:
+### Step 2 — Think (do NOT skip)
+- Merge duplicates: "Protein Powder", "Protein Powder (2 tbsp)", "protein powder" → one entry
+- Pick the **minimum sensible base unit** for each item (1 egg, 100g chicken, 1 tbsp oil)
+- Name format: `"Food Name (amount unit)"` — e.g. `"Boiled Egg (1 egg)"`, `"Greek Yogurt (100g)"`, `"Olive Oil (1 tbsp)"`
+- Discard junk entries (unnamed, placeholder, or one-off exotic items)
+- Sort by how useful/frequent the item is (most useful first)
+- Max 15 items
+
+### Step 3 — Write the curated list
+```bash
+curl -s -X PUT "$NUTRITRACK_URL/api/food/often-used" \
+  -H "Content-Type: application/json" \
+  -d '{"items": [
+    {"name": "Boiled Egg (1 egg)", "calories": 78, "protein_g": 6, "carbs_g": 1, "fat_g": 5, "meal_type": "breakfast"},
+    {"name": "Chicken Breast (100g)", "calories": 165, "protein_g": 31, "carbs_g": 0, "fat_g": 3.6, "meal_type": "lunch"}
+  ]}'
+```
+This **replaces** the entire list. First item in the array = sort_order 0 (top of dashboard list).
+
+### Step 4 — Verify
 ```bash
 curl -s "$NUTRITRACK_URL/api/food/often-used"
 ```
 
-Quick-add an often-used food by its ID:
+### Quick-add (used by dashboard + button)
 ```bash
 curl -s -X POST "$NUTRITRACK_URL/api/food/often-used/42/add"
 ```
+Copies the item into today's food log.
+
+### API Reference
+
+| Action | Method | Endpoint |
+|--------|--------|----------|
+| Raw frequency data (for agent) | GET | `/api/food/history/frequent` |
+| Write curated list (agent only) | PUT | `/api/food/often-used` |
+| Read curated list (dashboard) | GET | `/api/food/often-used` |
+| Quick-add to today | POST | `/api/food/often-used/{id}/add` |
+
+### When to curate
+- When the user says "update my often used tab" or similar
+- After the user has 2+ weeks of food history and the list is empty
+- When you notice the list is stale (items the user no longer eats)
 
 ## Editing and Deleting
 

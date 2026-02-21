@@ -79,6 +79,7 @@ def init_db():
             measured_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         
+        DROP TABLE IF EXISTS often_used_foods;
         CREATE TABLE IF NOT EXISTS often_used_foods (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -87,12 +88,11 @@ def init_db():
             carbs_g REAL NOT NULL DEFAULT 0,
             fat_g REAL NOT NULL DEFAULT 0,
             meal_type TEXT DEFAULT 'snack',
-            quantity TEXT,
-            use_count INTEGER NOT NULL DEFAULT 1,
-            last_used TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            UNIQUE(name, meal_type)
+            sort_order INTEGER NOT NULL DEFAULT 0,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
 
+        CREATE INDEX IF NOT EXISTS idx_often_used_updated ON often_used_foods(updated_at);
         CREATE INDEX IF NOT EXISTS idx_food_logged_at ON food_entries(logged_at);
         CREATE INDEX IF NOT EXISTS idx_weight_measured_at ON weight_logs(measured_at);
         CREATE INDEX IF NOT EXISTS idx_activity_performed_at ON sport_activities(performed_at);
