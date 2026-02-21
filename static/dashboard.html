@@ -259,16 +259,37 @@
     }
     .toast.show { opacity: 1; }
 
-    /* ─── Sub-tabs ──────────────────────────────────────────── */
-    .sub-tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 1px solid var(--border); }
-    .sub-tab {
-        padding: 0.5rem 1rem; border: none; background: transparent;
-        color: var(--text-dim); font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
-        font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent;
-        transition: all 0.15s;
+    /* ─── Food Log Sub-tabs (segmented control) ─────────────── */
+    .foodlog-tabs {
+        display: inline-flex;
+        background: var(--surface2);
+        border-radius: 10px;
+        padding: 3px;
+        gap: 3px;
+        margin-bottom: 14px;
     }
-    .sub-tab:hover { color: var(--text); }
-    .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .foodlog-tab {
+        padding: 8px 20px;
+        border: none;
+        background: transparent;
+        color: var(--text-dim);
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .foodlog-tab:hover:not(.active) {
+        color: var(--text);
+        background: rgba(255,255,255,0.05);
+    }
+    .foodlog-tab.active {
+        background: var(--accent);
+        color: #000;
+        font-weight: 600;
+    }
 
     /* ─── Often Used List ───────────────────────────────────── */
     .often-item {
@@ -446,9 +467,9 @@
                         <button class="add-entry-btn" onclick="openModal('food')" title="Add food">+</button>
                     </div>
                 </div>
-                <div class="sub-tabs">
-                    <button class="sub-tab active" onclick="switchFoodSubTab('log', this)">Food Log</button>
-                    <button class="sub-tab" onclick="switchFoodSubTab('often', this)">Often Used</button>
+                <div class="foodlog-tabs">
+                    <button class="foodlog-tab active" onclick="switchFoodSubTab('log', this)">Food Log</button>
+                    <button class="foodlog-tab" onclick="switchFoodSubTab('often', this)">Often Used</button>
                 </div>
                 <div id="foodLogPanel">
                     <div id="foodTableContainer">
@@ -1340,7 +1361,7 @@
         // OFTEN USED FOODS
         // ═══════════════════════════════════════════════════════════════════
         function switchFoodSubTab(tab, btn) {
-            document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.foodlog-tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById('foodLogPanel').style.display = tab === 'log' ? 'block' : 'none';
             document.getElementById('oftenUsedPanel').style.display = tab === 'often' ? 'block' : 'none';
