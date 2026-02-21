@@ -220,6 +220,38 @@
         color: var(--bg);
     }
 
+    /* ─── Toast ─────────────────────────────────────────────── */
+    .toast {
+        position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+        background: var(--surface2); color: var(--accent); padding: 0.6rem 1.2rem;
+        border-radius: 8px; font-size: 0.88rem; font-weight: 500;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 300;
+        opacity: 0; transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ─── Sub-tabs ──────────────────────────────────────────── */
+    .sub-tabs { display: flex; gap: 0; margin-bottom: 0; border-bottom: 1px solid var(--border); }
+    .sub-tab {
+        padding: 0.5rem 1rem; border: none; background: transparent;
+        color: var(--text-dim); font-family: 'DM Sans', sans-serif; font-size: 0.82rem;
+        font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent;
+        transition: all 0.15s;
+    }
+    .sub-tab:hover { color: var(--text); }
+    .sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ─── Often Used Grid ───────────────────────────────────── */
+    .often-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; padding: 0.75rem 0; }
+    .often-card {
+        background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+        padding: 0.65rem 0.75rem; cursor: pointer; transition: all 0.15s;
+    }
+    .often-card:hover { border-color: var(--accent); }
+    .often-card-name { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .often-card-meta { font-size: 0.72rem; color: var(--text-dim); font-family: 'Space Mono', monospace; }
+
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 768px) {
         /* Force everything full-width */
@@ -366,36 +398,52 @@
                 </div>
             </div>
 
-            <!-- 2. Food Log -->
+            <!-- 2. Food Log / Often Used -->
             <div class="card food-log" style="margin-bottom:1rem;">
                 <div class="card-header">
-                    <span class="card-title">Food Log</span>
+                    <span class="card-title">Food</span>
                     <div style="display:flex;align-items:center;gap:0.75rem;">
                         <span class="card-title" id="foodCount">0 entries</span>
                         <button class="add-entry-btn" onclick="openModal('food')" title="Add food">+</button>
                     </div>
                 </div>
-                <div id="foodTableContainer">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Meal</th>
-                                <th>Food</th>
-                                <th>Qty</th>
-                                <th>Kcal</th>
-                                <th>P</th>
-                                <th>C</th>
-                                <th>F</th>
-                                <th style="text-align:right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="foodTableBody"></tbody>
-                    </table>
+                <div class="sub-tabs">
+                    <button class="sub-tab active" onclick="switchFoodSubTab('log', this)">Food Log</button>
+                    <button class="sub-tab" onclick="switchFoodSubTab('often', this)">Often Used</button>
                 </div>
-                <div class="empty-state" id="foodEmpty" style="display:none;">
-                    <div class="icon">🍽️</div>
-                    <p>No food logged for this day. Tell your AI agent what you ate!</p>
+                <div id="foodLogPanel">
+                    <div id="foodTableContainer">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Meal</th>
+                                    <th>Food</th>
+                                    <th>Qty</th>
+                                    <th>Kcal</th>
+                                    <th>P</th>
+                                    <th>C</th>
+                                    <th>F</th>
+                                    <th style="text-align:right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="foodTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="empty-state" id="foodEmpty" style="display:none;">
+                        <div class="icon">🍽️</div>
+                        <p>No food logged for this day. Tell your AI agent what you ate!</p>
+                    </div>
+                </div>
+                <div id="oftenUsedPanel" style="display:none;">
+                    <div style="display:flex;justify-content:flex-end;padding:0.5rem 0;">
+                        <button onclick="refreshOftenUsed()" style="padding:0.3rem 0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text-dim);font-size:0.75rem;cursor:pointer;">Refresh</button>
+                    </div>
+                    <div id="oftenUsedGrid" class="often-grid"></div>
+                    <div class="empty-state" id="oftenEmpty" style="display:none;">
+                        <div class="icon">🔄</div>
+                        <p>No frequently used foods yet. Log more meals and click Refresh to populate.</p>
+                    </div>
                 </div>
             </div>
 
@@ -771,6 +819,8 @@
             <div class="modal-msg" id="mhMsg"></div>
         </div>
     </div>
+
+    <div class="toast" id="toast"></div>
 
     <script>
         // ═══════════════════════════════════════════════════════════════════
@@ -1241,6 +1291,74 @@
                 
             } catch (e) {
                 console.error("Duplicate failed", e);
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // TOAST
+        // ═══════════════════════════════════════════════════════════════════
+        function showToast(msg) {
+            const el = document.getElementById('toast');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 2500);
+        }
+
+        // ═══════════════════════════════════════════════════════════════════
+        // OFTEN USED FOODS
+        // ═══════════════════════════════════════════════════════════════════
+        function switchFoodSubTab(tab, btn) {
+            document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('foodLogPanel').style.display = tab === 'log' ? 'block' : 'none';
+            document.getElementById('oftenUsedPanel').style.display = tab === 'often' ? 'block' : 'none';
+            if (tab === 'often') loadOftenUsed();
+        }
+
+        async function loadOftenUsed() {
+            try {
+                const res = await fetch(`${API}/api/food/often-used`);
+                const data = await res.json();
+                const grid = document.getElementById('oftenUsedGrid');
+                const empty = document.getElementById('oftenEmpty');
+
+                if (data.entries.length === 0) {
+                    grid.innerHTML = '';
+                    empty.style.display = 'block';
+                    return;
+                }
+                empty.style.display = 'none';
+                grid.innerHTML = data.entries.map(e => `
+                    <div class="often-card" onclick="quickAddOftenUsed(${e.id}, '${e.name.replace(/'/g, "\\'")}', ${e.calories})" title="Click to add">
+                        <div class="often-card-name">${e.name}</div>
+                        <div class="often-card-meta">${Math.round(e.calories)} kcal · P${Math.round(e.protein_g)} C${Math.round(e.carbs_g)} F${Math.round(e.fat_g)}</div>
+                        <div class="often-card-meta" style="margin-top:2px;">${e.meal_type} · ${e.use_count}x</div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error('Often used load error:', err);
+            }
+        }
+
+        async function quickAddOftenUsed(id, name, cal) {
+            try {
+                const res = await fetch(`${API}/api/food/often-used/${id}/add`, { method: 'POST' });
+                const data = await res.json();
+                showToast(`Added: ${name} (${Math.round(cal)} kcal)`);
+                loadOverview();
+            } catch (err) {
+                console.error('Quick add error:', err);
+            }
+        }
+
+        async function refreshOftenUsed() {
+            try {
+                const res = await fetch(`${API}/api/food/often-used/refresh`, { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message);
+                loadOftenUsed();
+            } catch (err) {
+                console.error('Refresh error:', err);
             }
         }
 

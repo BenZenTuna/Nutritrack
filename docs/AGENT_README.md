@@ -411,6 +411,18 @@ curl -X DELETE http://localhost:8000/api/food/1
 
 ---
 
+#### Often Used Foods
+
+NutriTrack aggregates frequently logged foods. Use these endpoints for quick re-logging:
+
+**POST /api/food/often-used/refresh** -- Recalculates often-used foods from the last 90 days (foods logged 2+ times).
+
+**GET /api/food/often-used** -- Returns the list of often-used foods sorted by use count.
+
+**POST /api/food/often-used/{id}/add** -- Quick-adds an often-used food as a new food entry for today.
+
+---
+
 ### 4.3 Weight
 
 #### POST /api/weight -- Log a Weight Measurement

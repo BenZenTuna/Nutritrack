@@ -256,6 +256,67 @@ def search_food(q: str = Query(..., min_length=1)):
     conn.close()
     return {"results": rows_to_list(rows), "count": len(rows)}
 
+# ── Often Used Foods ─────────────────────────────────────────────────
+@app.post("/api/food/often-used/refresh")
+def refresh_often_used():
+    """Recalculate often-used foods from the last 90 days of food entries."""
+    conn = get_db()
+    cutoff = (datetime.now() - timedelta(days=90)).isoformat()
+    conn.execute("DELETE FROM often_used_foods")
+    conn.execute("""
+        INSERT INTO often_used_foods (name, calories, protein_g, carbs_g, fat_g, meal_type, quantity, use_count, last_used)
+        SELECT name,
+               ROUND(AVG(calories),1),
+               ROUND(AVG(protein_g),1),
+               ROUND(AVG(carbs_g),1),
+               ROUND(AVG(fat_g),1),
+               meal_type,
+               quantity,
+               COUNT(*) as cnt,
+               MAX(logged_at)
+        FROM food_entries
+        WHERE logged_at >= ?
+        GROUP BY name, meal_type
+        HAVING cnt >= 2
+        ORDER BY cnt DESC
+        LIMIT 50
+    """, (cutoff,))
+    conn.commit()
+    count = conn.execute("SELECT COUNT(*) FROM often_used_foods").fetchone()[0]
+    conn.close()
+    return {"message": f"Refreshed {count} often-used foods.", "count": count}
+
+@app.get("/api/food/often-used")
+def get_often_used():
+    """Get the list of often-used foods, sorted by use count."""
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM often_used_foods ORDER BY use_count DESC"
+    ).fetchall()
+    conn.close()
+    return {"entries": rows_to_list(rows), "count": len(rows)}
+
+@app.post("/api/food/often-used/{item_id}/add")
+def quick_add_often_used(item_id: int):
+    """Quick-add an often-used food as a new food entry for today."""
+    conn = get_db()
+    item = conn.execute("SELECT * FROM often_used_foods WHERE id=?", (item_id,)).fetchone()
+    if not item:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Often-used food not found")
+    item = dict(item)
+    logged_at = datetime.now().isoformat()
+    conn.execute("""
+        INSERT INTO food_entries (name, calories, protein_g, carbs_g, fat_g, meal_type, quantity, logged_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (item["name"], item["calories"], item["protein_g"], item["carbs_g"], item["fat_g"],
+          item["meal_type"], item["quantity"], logged_at))
+    conn.commit()
+    last_id = conn.execute("SELECT last_insert_rowid()").fetchone()[0]
+    row = conn.execute("SELECT * FROM food_entries WHERE id=?", (last_id,)).fetchone()
+    conn.close()
+    return {"entry": row_to_dict(row), "message": f"Added: {item['name']} ({item['calories']} kcal)"}
+
 @app.get("/api/food/range")
 def get_food_range(start: str, end: str):
     conn = get_db()
@@ -925,7 +986,7 @@ def seed_demo_data():
     conn = get_db()
 
     # Clear existing data
-    for table in ["food_entries", "weight_logs", "sport_activities", "health_measurements", "user_profile"]:
+    for table in ["food_entries", "weight_logs", "sport_activities", "health_measurements", "often_used_foods", "user_profile"]:
         conn.execute(f"DELETE FROM {table}")
     conn.commit()
 

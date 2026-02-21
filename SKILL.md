@@ -222,6 +222,23 @@ curl -s "$NUTRITRACK_URL/api/activity/range?start=2026-02-10&end=2026-02-17"
 curl -s "$NUTRITRACK_URL/api/history/daily-totals?days=30"
 ```
 
+## Often Used Foods
+
+NutriTrack tracks frequently logged foods. Refresh the list periodically:
+```bash
+curl -s -X POST "$NUTRITRACK_URL/api/food/often-used/refresh"
+```
+
+Get the list of often-used foods:
+```bash
+curl -s "$NUTRITRACK_URL/api/food/often-used"
+```
+
+Quick-add an often-used food by its ID:
+```bash
+curl -s -X POST "$NUTRITRACK_URL/api/food/often-used/42/add"
+```
+
 ## Editing and Deleting
 
 ```bash
