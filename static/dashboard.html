@@ -134,35 +134,63 @@
         .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.4; }
         .empty-state p { font-size: 0.95rem; max-width: 400px; margin: 0 auto; }
 
-    /* ─── Gamification ───────────────────────────────────────── */
-    .gamification-panel {
+    /* ─── Gamification Bar ─────────────────────────────────────── */
+    .gamification-bar {
         display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        background: var(--surface);
-        padding: 1.5rem;
-        border-radius: var(--radius);
         align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px;
+        background: var(--surface);
         border: 1px solid var(--border);
-        width: 100%; /* Ensure it fits container */
-        box-sizing: border-box;
+        border-radius: var(--radius);
+        margin-bottom: 16px;
     }
-    .gam-col { flex: 1; text-align: center; } /* Center text by default */
-    .gam-header {
-        margin-bottom: 0.5rem;
-        font-family: 'Space Mono', monospace;
-        color: var(--text-dim);
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .gam-stat {
+    .gamification-streak {
         display: flex;
-        align-items: baseline;
-        gap: 0.5rem;
-        justify-content: center; /* Center content */
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
     }
-    .gam-divider { width: 1px; height: 60px; background: var(--border); margin: 0 1rem; }
+    .gami-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+    .gami-pill-dim {
+        font-weight: 400;
+        color: var(--text-dim);
+        font-size: 0.82rem;
+    }
+    .gami-dot {
+        color: var(--text-dim);
+        opacity: 0.4;
+        font-size: 0.9rem;
+        user-select: none;
+    }
+    .gamification-activities {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .activity-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.78rem;
+        padding: 3px 10px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        color: var(--text);
+        white-space: nowrap;
+        font-family: 'DM Sans', sans-serif;
+    }
 
     /* ─── Modal ──────────────────────────────────────────────── */
     .modal-overlay {
@@ -274,7 +302,7 @@
         .grid-2, .grid-3, .health-grid, .profile-form, .calc-targets-grid { grid-template-columns: 1fr; gap: 0; margin-bottom: 0; }
 
         /* Cards go edge-to-edge like native mobile apps */
-        .card, .gamification-panel, .health-card {
+        .card, .health-card {
             border-radius: 0;
             border-left: none;
             border-right: none;
@@ -287,18 +315,14 @@
         .app-header { padding: 0 0.75rem; }
         .header-inner { padding: 0; }
 
-        /* Gamification panel */
-        .gamification-panel {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 1.5rem;
-            padding: 1rem;
+        /* Gamification bar mobile */
+        .gamification-bar {
+            border-radius: 0;
+            border-left: none;
+            border-right: none;
             margin-bottom: 0;
-            height: auto;
+            padding: 10px 12px;
         }
-        .gam-divider { width: 100%; height: 1px; margin: 0.5rem 0; }
-        .gam-col { text-align: left; }
-        .gam-stat { justify-content: flex-start; }
 
         /* Tabs */
         .tabs { overflow-x: auto; width: 100%; white-space: nowrap; padding: 4px 0.75rem 5px; margin: 0.5rem 0; background: transparent; }
@@ -337,16 +361,19 @@
     <!-- Main Content -->
     <main class="main-content">
         <!-- Gamification Bar -->
-        <div class="gamification-bar" style="display: flex; align-items: center; padding: 10px 20px; background: var(--surface); border-radius: var(--radius); margin-bottom: 12px; gap: 20px;">
-            <span style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem;">
-                <span id="streak-icon" style="font-size: 2rem;">🔥</span>
-                <strong id="streak-days" style="font-size: 1.2rem;">0</strong>
-                <span style="color: var(--text-dim); font-size: 0.95rem;">day streak</span>
-                <span id="best-streak" style="color: var(--text-dim); font-size: 0.78rem; margin-left: 4px;"></span>
-            </span>
-            <span style="color: var(--border); font-size: 1.2rem;">|</span>
-            <span id="activity-chips" style="display: flex; align-items: center; gap: 6px; font-size: 1.1rem; flex-wrap: wrap;">
-            </span>
+        <div class="gamification-bar">
+            <div class="gamification-streak">
+                <span class="gami-pill">
+                    <span id="streak-icon">🔥</span>
+                    <span><span id="streak-days">0</span> streak</span>
+                </span>
+                <span class="gami-dot">·</span>
+                <span class="gami-pill gami-pill-dim">
+                    <span>🏆</span>
+                    <span><span id="best-streak">0</span> best</span>
+                </span>
+            </div>
+            <div class="gamification-activities" id="activity-emojis"></div>
         </div>
 
         <!-- Calories Today (below gamification, above tabs) -->
@@ -1037,12 +1064,7 @@
                 document.getElementById('streak-icon').textContent = data.is_elite ? '💠' : '🔥';
 
                 // Best streak
-                const bestEl = document.getElementById('best-streak');
-                if (data.best_streak && data.best_streak > 0) {
-                    bestEl.textContent = `(best: ${data.best_streak})`;
-                } else {
-                    bestEl.textContent = '';
-                }
+                document.getElementById('best-streak').textContent = data.best_streak || 0;
 
                 // Activity emoji chips
                 const ACTIVITY_EMOJIS = {
@@ -1058,16 +1080,18 @@
                     'rowing': '🚣',
                     'basketball': '🏀', 'soccer': '⚽', 'football': '🏈', 'tennis': '🎾',
                 };
-                const chipsEl = document.getElementById('activity-chips');
+                const actContainer = document.getElementById('activity-emojis');
+                actContainer.innerHTML = '';
                 const acts = data.activities_today || [];
                 if (acts.length > 0) {
-                    chipsEl.innerHTML = acts.map(a => {
+                    acts.forEach(a => {
                         const key = a.toLowerCase();
                         const emoji = ACTIVITY_EMOJIS[key] || '💪';
-                        return `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--surface2);padding:2px 8px;border-radius:12px;font-size:0.85rem;">${emoji} ${a}</span>`;
-                    }).join('');
-                } else {
-                    chipsEl.innerHTML = '<span style="color:var(--text-dim);font-size:0.85rem;">No activities yet</span>';
+                        const chip = document.createElement('span');
+                        chip.className = 'activity-chip';
+                        chip.textContent = `${emoji} ${a}`;
+                        actContainer.appendChild(chip);
+                    });
                 }
 
             } catch (err) {
