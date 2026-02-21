@@ -1,8 +1,8 @@
 # NutriTrack — Complete Project Snapshot
 
-> **Generated**: 2026-02-21
+> **Generated**: 2026-02-21 (updated)
 > **Purpose**: Full knowledge transfer document for onboarding a fresh Claude session with zero context.
-> **Branch**: `main` at commit `243bb51`
+> **Branch**: `main` at commit `f239587`
 
 ---
 
@@ -199,11 +199,27 @@ CREATE TABLE IF NOT EXISTS health_measurements (
     notes TEXT,
     measured_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+DROP TABLE IF EXISTS often_used_foods;
+CREATE TABLE IF NOT EXISTS often_used_foods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    calories REAL NOT NULL DEFAULT 0,
+    protein_g REAL NOT NULL DEFAULT 0,
+    carbs_g REAL NOT NULL DEFAULT 0,
+    fat_g REAL NOT NULL DEFAULT 0,
+    meal_type TEXT DEFAULT 'snack',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
+
+**Note**: `often_used_foods` uses `DROP TABLE IF EXISTS` before `CREATE TABLE` — the table is recreated on every `init_db()` call. This is by design: the agent curates and writes the entire list via `PUT /api/food/often-used`, so data is rebuilt from the API, not preserved across DB reinit.
 
 ### Indexes
 
 ```sql
+CREATE INDEX IF NOT EXISTS idx_often_used_updated ON often_used_foods(updated_at);
 CREATE INDEX IF NOT EXISTS idx_food_logged_at ON food_entries(logged_at);
 CREATE INDEX IF NOT EXISTS idx_weight_measured_at ON weight_logs(measured_at);
 CREATE INDEX IF NOT EXISTS idx_activity_performed_at ON sport_activities(performed_at);
@@ -266,6 +282,17 @@ class HealthEntry(BaseModel):
     heart_rate: Optional[int] = None
     notes: Optional[str] = None
     measured_at: Optional[str] = None
+
+class OftenUsedItem(BaseModel):
+    name: str
+    calories: float = 0
+    protein_g: float = 0
+    carbs_g: float = 0
+    fat_g: float = 0
+    meal_type: str = "snack"
+
+class OftenUsedUpdate(BaseModel):
+    items: list[OftenUsedItem]
 ```
 
 ### Endpoint Reference
@@ -325,10 +352,20 @@ class HealthEntry(BaseModel):
 | GET | `/api/weekly-report` | `?date=YYYY-MM-DD` (optional, defaults to today) | 7-day aggregated report ending on that date |
 | GET | `/api/history/daily-totals` | `?days=N` (default 30) | Daily calorie/macro totals + goals for chart rendering |
 
+#### Often Used Foods (Agent-Curated)
+| Method | Path | Params | Response |
+|--------|------|--------|----------|
+| GET | `/api/food/history/frequent` | — | Raw frequency data grouped by name with `count`, `min_cal/avg_cal/max_cal`, etc. |
+| PUT | `/api/food/often-used` | Body: `{"items": [OftenUsedItem, ...]}` | **Replaces** entire list. Agent curates and writes. |
+| GET | `/api/food/often-used` | — | `{"items": [...], "count": N}` — curated list for dashboard display |
+| POST | `/api/food/often-used/{item_id}/add` | — | Copies item into today's food log. Returns `{"entry": {...}, "message": "..."}` |
+
+**Agent curation workflow**: Agent reads raw `/api/food/history/frequent`, deduplicates/normalizes entries, picks minimum sensible base units, writes clean list via PUT. Dashboard "Often Used" tab is read-only — no auto-generation. Max 15 items.
+
 #### Gamification
 | Method | Path | Params | Response |
 |--------|------|--------|----------|
-| GET | `/api/gamification` | — | `{"streak_days": N, "today_points": N, "is_elite": bool, "calorie_success": bool, "tags": [...]}` |
+| GET | `/api/gamification` | — | `{"streak_days": N, "best_streak": N, "today_points": N, "is_elite": bool, "calorie_success": bool, "tags": [...], "activities_today": [...]}` |
 
 #### Export
 | Method | Path | Params | Response |
@@ -434,7 +471,7 @@ Fat Goal     = (Calorie Goal × 0.30) / 9 grams
 
 ### Single-File Architecture
 
-The entire frontend lives in `static/dashboard.html` — a single 1,664-line file containing HTML, CSS, and JavaScript inline. No build step, no modules, no framework.
+The entire frontend lives in `static/dashboard.html` — a single ~1,900-line file containing HTML, CSS, and JavaScript inline. No build step, no modules, no framework.
 
 ### Tabs
 
@@ -448,8 +485,16 @@ The entire frontend lives in `static/dashboard.html` — a single 1,664-line fil
 ### Global Above-Tab Elements (always visible)
 
 1. **Header with date navigation**: Previous/next day buttons, date picker input, "Today" button
-2. **Gamification bar**: Fire/diamond emoji + streak count + XP points
+2. **Gamification bar** (pill layout): Streak pill (`🔥 N day streak` or `💠` if elite) + dot separator + best streak pill (`🏆 best: N`) + activity emoji chips (e.g., 🏃 Running, 🚴 Cycling)
 3. **Calorie ring**: SVG progress ring showing calories eaten vs goal, with remaining count
+
+### Food Log Sub-Tabs (Segmented Control)
+
+The Overview tab's food section has two sub-tabs styled as a **segmented control** (not underline-style):
+- **Food Log** — shows today's food entries table
+- **Often Used** — shows the agent-curated frequently used items
+
+CSS uses `.foodlog-tabs` (inline-flex container with `var(--surface2)` background) and `.foodlog-tab` (individual segments). Active tab gets `var(--accent)` background with black text.
 
 ### JavaScript Functions
 
@@ -475,7 +520,15 @@ The entire frontend lives in `static/dashboard.html` — a single 1,664-line fil
 #### Gamification
 | Function | Description |
 |----------|-------------|
-| `loadGamification()` | Fetches `/api/gamification`, updates streak icon (🔥 or 💠 if elite), XP points, and macro status badges (good/low/over) |
+| `loadGamification()` | Fetches `/api/gamification`, updates streak pill (🔥 or 💠 if elite), best streak pill (🏆), and activity emoji chips. Uses `ACTIVITY_EMOJIS` map to convert activity names to emojis. |
+
+#### Often Used Foods
+| Function | Description |
+|----------|-------------|
+| `loadOftenUsed()` | Fetches `/api/food/often-used`, renders `.often-item` list items with + button for quick-add |
+| `addOftenUsed(id, btn)` | POSTs to `/api/food/often-used/{id}/add`, animates button: `+ → … → ✓ → +`, reloads overview |
+| `switchFoodSubTab(tab)` | Toggles between 'foodlog' and 'oftenused' panels, updates `.foodlog-tab` active state |
+| `showToast(msg)` | Shows a fixed bottom-center toast notification for 2.5 seconds with fade animation |
 
 #### Date Navigation
 | Function | Description |
@@ -536,11 +589,26 @@ The entire frontend lives in `static/dashboard.html` — a single 1,664-line fil
 | `bp` | `bpChart` | line (2 datasets) | Date (YYYY-MM-DD) | mmHg | `/api/health` |
 | `sugarOxy` | `sugarOxyChart` | line (dual axis) | Date (YYYY-MM-DD) | mg/dL / % | `/api/health` |
 
-### Gamification UI Elements
+### Gamification Bar UI (Pill Layout)
 
-- **Streak counter**: Shows `🔥 N day streak` (or `💠` diamond emoji if elite today)
-- **XP counter**: Shows `⚡ N XP`
-- **Macro status badges**: Per-macro indicators next to progress bars:
+The gamification bar uses a **horizontal flex wrap** layout with pill-shaped elements:
+
+- **`.gamification-bar`**: Container with `display: flex; flex-wrap: wrap; gap: 8px; align-items: center`
+- **`.gamification-streak`**: Left group containing streak + best streak pills
+- **`.gami-pill`**: Active pill (white text, green-tinted background `rgba(62, 207, 142, 0.12)`)
+- **`.gami-pill-dim`**: Subdued pill for best streak (dimmer colors)
+- **`.gami-dot`**: Small separator dot (6px circle, `var(--border)`)
+- **`.gamification-activities`**: Right section for activity emoji chips
+- **`.activity-chip`**: Individual activity chip (small text, surface2 background, 6px radius)
+
+**Activity emoji mapping** (inline `ACTIVITY_EMOJIS` object in JS):
+```
+Running → 🏃, Cycling → 🚴, Swimming → 🏊, Weight Training → 🏋️,
+Yoga → 🧘, Walking → 🚶, HIIT → 💥, Hiking → 🥾, Sports → ⚽,
+Dancing → 💃, Rowing → 🚣, Climbing → 🧗
+```
+
+- **Macro status labels**: Per-macro indicators next to progress bars in the overview:
   - Protein: "good" (green) or "low" (red)
   - Carbs: "good" (green) or "over" (red)
   - Fat: "good" (green) or "over" (red)
@@ -1802,6 +1870,18 @@ Covers:
 - Optional systemd user service setup (no sudo)
 - Troubleshooting table
 
+### Agent-Curated "Often Used" Foods
+
+The agent is the **sole curator** of the Often Used tab on the dashboard. This is NOT auto-generated.
+
+**Curation workflow (from SKILL.md)**:
+1. `GET /api/food/history/frequent` — read raw frequency data
+2. **Think**: Merge duplicates, pick minimum sensible base units, normalize names to `"Food Name (amount unit)"` format
+3. `PUT /api/food/often-used` — write curated list (replaces entire list, max 15 items)
+4. `GET /api/food/often-used` — verify
+
+**When to curate**: User asks, after 2+ weeks of history with empty list, or when list is stale.
+
 ### Key Agent Behaviors
 
 - **No authentication**: Single-user, local-first design
@@ -1854,13 +1934,19 @@ Covers:
 
 ### Recently Changed / Added
 
-Based on the last 10 commits (all from 2026-02-17 and 2026-02-18):
+Based on the last 15 commits (2026-02-17 to 2026-02-21):
+- **Agent-curated Often Used foods** (4aaace4): Replaced auto-generated frequency list with agent-curated system. Added `OftenUsedItem`/`OftenUsedUpdate` Pydantic models, PUT/GET/POST often-used endpoints, `often_used_foods` table. Dashboard "Often Used" tab is now read-only with a hint text asking users to tell their agent to curate.
+- **Gamification bar pill layout** (430c699): Replaced cramped inline gamification display with semantic pill layout. Uses `.gami-pill`, `.gami-dot`, `.activity-chip` CSS classes. Shows streak pill + dot + best streak + activity emoji chips. Responsive wrap on mobile.
+- **Food log sub-tabs as segmented control** (f239587): Replaced underline-style `.sub-tab` with solid segment-style `.foodlog-tab`. Green active tab on `var(--surface2)` track background.
+- Added Often Used foods tab with quick-add and toast notifications (949f6c5)
+- Added post-meal coaching tips and coaching endpoint (596f7e4)
+- Replaced XP points with activity emoji chips in gamification bar (5161944)
+- Added best streak record alongside current streak (d1a9659)
+- Added quick weight entry input in status panel (0810e42)
+- Custom macro chart legend (e71d666)
 - Added one-command deploy system (`deploy.sh`)
 - Added AI agent setup guide (SKILL.md, AGENT_DEPLOY.md)
-- Consolidated skill files into single SKILL.md per OpenClaw convention
 - Removed Seed Demo Data button from profile section (data entry is agent-only)
-- Moved calorie ring below gamification bar
-- Moved activities panel below food log in overview tab
 
 ### TODO/FIXME/HACK/XXX Comments
 
@@ -1897,20 +1983,25 @@ main
 origin  https://github.com/BenZenTuna/Nutritrack.git
 ```
 
-### Last 10 Commits
+### Last 15 Commits
 
 | Hash | Date | Message |
 |------|------|---------|
+| `f239587` | 2026-02-21 | style: redesign food log sub-tabs as segmented control |
+| `430c699` | 2026-02-21 | style: redesign gamification bar with pill layout and responsive wrap |
+| `4aaace4` | 2026-02-21 | feat: replace auto-generated often-used list with agent-curated system |
+| `da3ff16` | 2026-02-21 | docs: regenerate PROJECT_SNAPSHOT.md with full codebase analysis |
+| `949f6c5` | 2026-02-21 | feat: add Often Used foods tab with quick-add and toast notifications |
+| `596f7e4` | 2026-02-21 | feat: add post-meal coaching tips and coaching endpoint |
+| `5161944` | 2026-02-21 | feat: replace XP points with activity emoji chips in gamification bar |
+| `d1a9659` | 2026-02-21 | feat: show best streak record alongside current streak |
+| `0810e42` | 2026-02-21 | feat: add quick weight entry input in status panel |
+| `e71d666` | 2026-02-21 | ui: replace macro chart built-in legend with custom 3-column grid |
+| `92df6e0` | 2026-02-21 | ui: move activity panel below status panel in overview tab |
+| `934006c` | 2026-02-21 | fix: calculate macro status labels from daily-summary instead of gamification |
 | `243bb51` | 2026-02-18 | fix: correct broken SKILL.md and install script URLs in README |
 | `2142cdf` | 2026-02-18 | Remove instructions for other AI agents |
 | `2a273bb` | 2026-02-18 | style: remove Seed Demo Data button from profile section |
-| `5e9683d` | 2026-02-18 | docs: make AI agent install the primary option in README |
-| `851fbec` | 2026-02-18 | feat: add one-command deploy system and AI agent setup guide |
-| `c91a9c2` | 2026-02-17 | refactor: consolidate skill files into SKILL.md per OpenClaw convention |
-| `59e6d9c` | 2026-02-17 | feat: add compact SKILL.md for OpenClaw agent discovery |
-| `f1312a4` | 2026-02-17 | docs: clarify agent skill file (nutritrack.md) in README |
-| `57982f6` | 2026-02-17 | style: move calorie ring below gamification bar and enlarge gamification 2x |
-| `917741e` | 2026-02-17 | style: move activities panel below food log in overview tab |
 
 ### Uncommitted Changes
 ```
