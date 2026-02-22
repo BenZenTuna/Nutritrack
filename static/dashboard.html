@@ -372,6 +372,11 @@
     .coaching-chevron.open { transform: rotate(180deg); }
     .coaching-expanded {
         padding: 0 16px 16px 42px;
+        animation: coachExpand 0.3s ease;
+    }
+    @keyframes coachExpand {
+        from { opacity: 0; max-height: 0; }
+        to { opacity: 1; max-height: 500px; }
     }
     .coaching-full-text {
         font-size: 13px;
@@ -398,12 +403,12 @@
     .coaching-week-pill.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
     .coaching-summary-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 24px; }
     .coaching-stat-card {
-        flex: 1; min-width: 120px; padding: 14px; border-radius: var(--radius);
-        background: var(--surface); border: 1px solid var(--border);
+        flex: 1; min-width: 110px; padding: 14px; border-radius: var(--radius);
+        background: var(--surface); border: 1px solid var(--border); text-align: center;
     }
     .coaching-stat-card .label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
     .coaching-stat-card .value { font-size: 20px; font-weight: 700; margin-top: 4px; font-family: 'Space Mono', monospace; }
-    .coaching-grade { font-size: 32px; font-weight: 800; text-align: center; }
+    .coaching-grade { font-size: 36px; font-weight: 800; }
     .coaching-report-body { max-width: 720px; line-height: 1.7; }
     .coaching-report-body .section-header {
         color: var(--accent); font-size: 12px; font-weight: 700;
@@ -412,9 +417,10 @@
         border-bottom: 1px solid var(--border);
     }
     .coaching-report-body .section-header:first-child { margin-top: 0; }
-    .coaching-report-body p { color: var(--text); margin-bottom: 12px; }
+    .coaching-report-body p { color: var(--text); margin-bottom: 10px; font-size: 14px; }
     .coaching-report-body .bullet-item {
-        padding-left: 16px; border-left: 2px solid var(--accent); margin-bottom: 8px; color: var(--text);
+        padding: 4px 0 4px 16px; border-left: 2px solid var(--accent);
+        margin-bottom: 6px; color: var(--text); font-size: 14px;
     }
     .coaching-actions-card {
         margin-top: 24px; padding: 20px; border-radius: var(--radius);
@@ -424,11 +430,16 @@
         font-size: 13px; font-weight: 700; color: var(--accent);
         text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;
     }
-    .coaching-actions-card .action-item { padding: 8px 0; color: var(--text); border-bottom: 1px solid rgba(62,207,142,0.1); }
+    .coaching-actions-card .action-item {
+        padding: 8px 0; color: var(--text); font-size: 14px;
+        border-bottom: 1px solid rgba(62,207,142,0.1);
+    }
     .coaching-actions-card .action-item:last-child { border-bottom: none; }
+    .coaching-actions-card .action-item::before { content: '→ '; color: var(--accent); }
     .coaching-empty { text-align: center; padding: 60px 20px; color: var(--text-dim); }
     .coaching-empty .empty-icon { font-size: 48px; margin-bottom: 16px; }
     .coaching-empty .empty-title { font-size: 16px; color: var(--text); margin-bottom: 8px; }
+    .coaching-empty .empty-hint { font-size: 13px; line-height: 1.6; }
 
     /* ─── Gear Button ───────────────────────────────────────── */
     .gear-btn {
@@ -491,8 +502,10 @@
 
         /* Coaching panel mobile */
         .daily-coaching-panel { border-radius: 0; border-left: none; border-right: none; margin-bottom: 0; }
-        .coaching-summary-cards { flex-wrap: wrap; }
-        .coaching-stat-card { min-width: calc(50% - 8px); }
+        .coaching-summary-cards { gap: 8px; }
+        .coaching-stat-card { min-width: 90px; padding: 10px; }
+        .coaching-stat-card .value { font-size: 16px; }
+        .coaching-priority { font-size: 12px; }
     }
     </style>
 </head>
@@ -817,10 +830,10 @@
                     <div class="coaching-report-body" id="coachingReportBody"></div>
                 </div>
                 <div id="coachingActionsCard" style="display:none;"></div>
-                <div class="coaching-empty" id="coachingEmpty">
-                    <div class="empty-icon">&#129504;</div>
+                <div class="coaching-empty" id="coachingEmpty" style="display:none;">
+                    <div class="empty-icon">📋</div>
                     <div class="empty-title">No coaching reports yet</div>
-                    <p>Your health coach agent will post weekly reports here every Sunday.</p>
+                    <div class="empty-hint">Your health coach agent will post weekly reports here every Sunday.<br>You can also ask your agent: "How did I do this week?"</div>
                 </div>
             </div>
         </div>
@@ -1096,6 +1109,7 @@
         // ─── Modal Helpers ──────────────────────────────────────────────
         function openModal(type) {
             document.getElementById('modal-' + type).classList.add('open');
+            if (type === 'profile') loadProfile();
         }
 
         function closeModal(type) {
@@ -2057,6 +2071,7 @@
         let coachingTabLoaded = false;
 
         async function loadCoachingTab() {
+            if (coachingTabLoaded && coachingReports.length > 0) return;
             try {
                 const res = await fetch(`${API}/api/coaching/reports?limit=12`);
                 const data = await res.json();
@@ -2111,30 +2126,32 @@
                 summaryDiv.style.display = 'flex';
                 let cards = '';
 
+                if (summary.grade) {
+                    const gradeColor = {'A+':'#3ecf8e','A':'#3ecf8e','B+':'#60a5fa','B':'#60a5fa','C+':'#fbbf24','C':'#fbbf24','D':'#f87171','F':'#ef4444'}[summary.grade] || 'var(--text)';
+                    cards += '<div class="coaching-stat-card"><div class="label">Grade</div><div class="coaching-grade" style="color:' + gradeColor + '">' + summary.grade + '</div></div>';
+                }
                 if (summary.avg_calories != null) {
-                    const calColor = summary.calorie_goal && summary.avg_calories <= summary.calorie_goal ? 'var(--accent)' : 'var(--danger)';
-                    cards += '<div class="coaching-stat-card"><div class="label">Avg Calories</div><div class="value" style="color:' + calColor + '">' + Math.round(summary.avg_calories) + '</div></div>';
+                    const calColor = summary.calorie_goal && summary.avg_calories <= summary.calorie_goal ? '#3ecf8e' : '#f87171';
+                    cards += '<div class="coaching-stat-card"><div class="label">Avg Calories</div><div class="value" style="color:' + calColor + '">' + Math.round(summary.avg_calories) + '</div>' + (summary.calorie_goal ? '<div class="label">goal ' + Math.round(summary.calorie_goal) + '</div>' : '') + '</div>';
                 }
                 if (summary.weight_change != null) {
-                    const arrow = summary.weight_change < 0 ? '\u2193' : summary.weight_change > 0 ? '\u2191' : '\u2192';
-                    const wColor = summary.weight_change <= 0 ? 'var(--accent)' : 'var(--warning)';
-                    cards += '<div class="coaching-stat-card"><div class="label">Weight Change</div><div class="value" style="color:' + wColor + '">' + arrow + ' ' + Math.abs(summary.weight_change) + ' kg</div></div>';
+                    const wColor = summary.weight_change < 0 ? '#3ecf8e' : summary.weight_change > 0 ? '#f87171' : 'var(--text-dim)';
+                    const wArrow = summary.weight_change < 0 ? '\u2193' : summary.weight_change > 0 ? '\u2191' : '\u2014';
+                    cards += '<div class="coaching-stat-card"><div class="label">Weight</div><div class="value" style="color:' + wColor + '">' + wArrow + ' ' + Math.abs(summary.weight_change).toFixed(1) + ' kg</div></div>';
                 }
                 if (summary.days_on_track != null) {
-                    cards += '<div class="coaching-stat-card"><div class="label">Days on Track</div><div class="value">' + summary.days_on_track + '/' + (summary.days_total || 7) + '</div></div>';
-                }
-                if (summary.grade) {
-                    cards += '<div class="coaching-stat-card"><div class="label">Grade</div><div class="coaching-grade">' + summary.grade + '</div></div>';
+                    const dtColor = summary.days_on_track >= 5 ? '#3ecf8e' : summary.days_on_track >= 3 ? '#fbbf24' : '#f87171';
+                    cards += '<div class="coaching-stat-card"><div class="label">Days on Track</div><div class="value" style="color:' + dtColor + '">' + summary.days_on_track + '/' + (summary.days_total || 7) + '</div></div>';
                 }
                 if (summary.streak_days != null) {
-                    cards += '<div class="coaching-stat-card"><div class="label">Streak</div><div class="value">' + summary.streak_days + ' days</div></div>';
+                    cards += '<div class="coaching-stat-card"><div class="label">Streak</div><div class="value">\uD83D\uDD25 ' + summary.streak_days + '</div></div>';
                 }
                 summaryDiv.innerHTML = cards;
 
                 // Action items
                 if (summary.action_items && summary.action_items.length > 0) {
                     actionsDiv.style.display = 'block';
-                    actionsDiv.innerHTML = '<div class="coaching-actions-card"><div class="action-title">Action Items for Next Week</div>' +
+                    actionsDiv.innerHTML = '<div class="coaching-actions-card"><div class="action-title">\uD83D\uDCCB Action Items for Next Week</div>' +
                         summary.action_items.map(item => '<div class="action-item">' + item + '</div>').join('') +
                         '</div>';
                 } else {
@@ -2158,16 +2175,26 @@
         }
 
         function formatReportText(text) {
+            if (!text) return '';
             const lines = text.split('\n');
             let html = '';
+            const headerPatterns = [
+                'WEEKLY HEALTH REPORT', 'THE NUMBERS', 'WEIGHT CHECK', 'WINS THIS WEEK',
+                'WATCH OUT', 'FOOD SPOTLIGHT', 'ACTIVITY SUMMARY', 'ACTION ITEMS',
+                'STREAK AND GAMIFICATION', 'STREAK &'
+            ];
+
             for (const line of lines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
-                // ALL CAPS lines = section headers
-                if (/^[A-Z\s\u2014\u2013\-\d,.:!]+$/.test(trimmed) && trimmed.length > 3) {
+
+                const isHeader = headerPatterns.some(p => trimmed.toUpperCase().startsWith(p)) ||
+                                 (trimmed.length >= 4 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed));
+
+                if (isHeader) {
                     html += '<div class="section-header">' + trimmed + '</div>';
                 } else if (trimmed.startsWith('- ')) {
-                    html += '<div class="bullet-item">' + trimmed.substring(2) + '</div>';
+                    html += '<div class="bullet-item">' + trimmed.slice(2) + '</div>';
                 } else {
                     html += '<p>' + trimmed + '</p>';
                 }
