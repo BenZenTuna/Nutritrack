@@ -1700,13 +1700,13 @@
             // Render tick marks
             const ticksContainer = document.getElementById('goalTicks');
             const ticks = [
-                { adj: -1000, label: '\u22121kg', hint: 'aggressive' },
+                { adj: -1000, label: '\u22121kg', hint: '' },
                 { adj: -750, label: '\u22120.75', hint: 'fast' },
                 { adj: -500, label: '\u22120.5', hint: 'optimal' },
                 { adj: -250, label: '\u22120.25', hint: 'gentle' },
                 { adj: 0, label: '', hint: '' },
                 { adj: 250, label: '+0.25', hint: 'lean bulk' },
-                { adj: 500, label: '+0.5', hint: 'bulk' },
+                { adj: 500, label: '+0.5', hint: '' },
             ];
             ticksContainer.innerHTML = ticks.map(t => {
                 const tp = goalAdjToPercent(t.adj);
