@@ -707,6 +707,23 @@
     .goal-slider-container.dragging .goal-slider-tick {
         opacity: 0.7;
     }
+    .goal-slider-tick-hint {
+        font-family: 'DM Sans', sans-serif;
+        font-size: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+        margin-top: 1px;
+        opacity: 0.6;
+    }
+    .goal-slider-tick:first-child .goal-slider-tick-hint {
+        color: var(--danger);
+        opacity: 0.8;
+    }
+    .goal-slider-tick:last-child .goal-slider-tick-hint {
+        color: var(--warning);
+        opacity: 0.8;
+    }
 
     /* Scale labels */
     .goal-slider-labels {
@@ -1683,13 +1700,18 @@
             // Render tick marks
             const ticksContainer = document.getElementById('goalTicks');
             const ticks = [
-                { adj: -1000, label: '\u22121kg' }, { adj: -750, label: '\u22120.75' },
-                { adj: -500, label: '\u22120.5' }, { adj: -250, label: '\u22120.25' },
-                { adj: 0, label: '' }, { adj: 250, label: '+0.25' }, { adj: 500, label: '+0.5' }
+                { adj: -1000, label: '\u22121kg', hint: 'aggressive' },
+                { adj: -750, label: '\u22120.75', hint: 'fast' },
+                { adj: -500, label: '\u22120.5', hint: 'optimal' },
+                { adj: -250, label: '\u22120.25', hint: 'gentle' },
+                { adj: 0, label: '', hint: '' },
+                { adj: 250, label: '+0.25', hint: 'lean bulk' },
+                { adj: 500, label: '+0.5', hint: 'bulk' },
             ];
             ticksContainer.innerHTML = ticks.map(t => {
                 const tp = goalAdjToPercent(t.adj);
-                return `<div class="goal-slider-tick" style="left:${tp}%">${t.label}</div>`;
+                const hintHtml = t.hint ? `<div class="goal-slider-tick-hint">${t.hint}</div>` : '';
+                return `<div class="goal-slider-tick" style="left:${tp}%">${t.label}${hintHtml}</div>`;
             }).join('');
 
             // Center line position
