@@ -727,8 +727,8 @@
 
     /* Scale labels */
     .goal-slider-labels {
-        display: flex;
-        justify-content: space-between;
+        position: relative;
+        height: 16px;
         margin-top: 6px;
         padding: 0 2px;
     }
@@ -822,9 +822,9 @@
             </div>
 
             <div class="goal-slider-labels">
-                <span style="color:var(--protein)">Lose</span>
-                <span style="color:var(--accent)">Maintain</span>
-                <span style="color:var(--fat)">Gain</span>
+                <span style="color:var(--protein); position:absolute; left:0;">Lose</span>
+                <span id="goalMaintainLabel" style="color:var(--accent); position:absolute; transform:translateX(-50%);">Maintain</span>
+                <span style="color:var(--fat); position:absolute; right:0;">Gain</span>
             </div>
 
             <div class="goal-unlock-hint" id="goalUnlockHint" style="display:none;">
@@ -1716,6 +1716,10 @@
 
             // Center line position
             document.getElementById('goalCenterLine').style.left = zeroPct + '%';
+
+            // Position MAINTAIN label at zero point
+            const maintainLabel = document.getElementById('goalMaintainLabel');
+            if (maintainLabel) maintainLabel.style.left = zeroPct + '%';
 
             // Touch + mouse events on track
             function startDrag(e) {
