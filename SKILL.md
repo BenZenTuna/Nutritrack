@@ -276,6 +276,31 @@ Copies the item into today's food log.
 - After the user has 2+ weeks of food history and the list is empty
 - When you notice the list is stale (items the user no longer eats)
 
+## Goal Mode
+
+The user can set their daily calorie goal mode via the dashboard slider or via API:
+
+| Method | Path | Body | Response |
+|--------|------|------|----------|
+| PUT | `/api/goal-mode` | `{"goal_mode": "deficit\|maintain\|surplus", "calorie_adjustment": 500}` | `{"goal_mode": "...", "message": "..."}` |
+
+**Modes:**
+- `deficit`: Calorie Goal = TDEE − calorie_adjustment (weight loss)
+- `maintain`: Calorie Goal = TDEE (keep current weight)
+- `surplus`: Calorie Goal = TDEE + calorie_adjustment (weight gain)
+
+**calorie_adjustment** is optional. If provided:
+- In deficit mode: sets calorie_deficit (0–2000)
+- In surplus mode: sets calorie_surplus (0–1000)
+- In maintain mode: ignored
+
+The `GET /api/daily-summary` response includes `goal_mode`, `tdee`, `calorie_deficit`, and `calorie_surplus` fields.
+
+**Agent coaching awareness**: When writing daily coaching tips, reference the current mode:
+- Deficit: "You have X kcal remaining in your deficit budget..."
+- Maintain: "You're eating at maintenance today. X kcal left to hit your TDEE..."
+- Surplus: "You still need X more kcal to hit your surplus target..."
+
 ## Editing and Deleting
 
 ```bash

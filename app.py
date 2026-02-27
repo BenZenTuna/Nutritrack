@@ -57,6 +57,12 @@ class ProfileCreate(BaseModel):
     activity_level: str = Field(default="moderate")
     weight_goal_kg: Optional[float] = None
     calorie_deficit: int = Field(default=500, ge=0, le=2000)
+    calorie_surplus: int = Field(default=300, ge=0, le=1000)
+    goal_mode: str = Field(default="deficit")
+
+class GoalModeUpdate(BaseModel):
+    goal_mode: str = Field(..., pattern="^(deficit|maintain|surplus)$")
+    calorie_adjustment: Optional[int] = None
 
 class FoodEntry(BaseModel):
     name: str
@@ -193,15 +199,15 @@ def update_profile(profile: ProfileCreate):
     
     if existing:
         conn.execute("""
-            UPDATE user_profile 
-            SET age=?, sex=?, height_cm=?, current_weight_kg=?, activity_level=?, weight_goal_kg=?, calorie_deficit=?, updated_at=CURRENT_TIMESTAMP
+            UPDATE user_profile
+            SET age=?, sex=?, height_cm=?, current_weight_kg=?, activity_level=?, weight_goal_kg=?, calorie_deficit=?, calorie_surplus=?, goal_mode=?, updated_at=CURRENT_TIMESTAMP
             WHERE id=?
-        """, (profile.age, profile.sex, profile.height_cm, profile.current_weight_kg, profile.activity_level, profile.weight_goal_kg, profile.calorie_deficit, existing["id"]))
+        """, (profile.age, profile.sex, profile.height_cm, profile.current_weight_kg, profile.activity_level, profile.weight_goal_kg, profile.calorie_deficit, profile.calorie_surplus, profile.goal_mode, existing["id"]))
     else:
         conn.execute("""
-            INSERT INTO user_profile (age, sex, height_cm, current_weight_kg, activity_level, weight_goal_kg, calorie_deficit)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (profile.age, profile.sex, profile.height_cm, profile.current_weight_kg, profile.activity_level, profile.weight_goal_kg, profile.calorie_deficit))
+            INSERT INTO user_profile (age, sex, height_cm, current_weight_kg, activity_level, weight_goal_kg, calorie_deficit, calorie_surplus, goal_mode)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (profile.age, profile.sex, profile.height_cm, profile.current_weight_kg, profile.activity_level, profile.weight_goal_kg, profile.calorie_deficit, profile.calorie_surplus, profile.goal_mode))
         
         # Also log initial weight
         conn.execute("""
@@ -213,6 +219,33 @@ def update_profile(profile: ProfileCreate):
     row = conn.execute("SELECT * FROM user_profile ORDER BY id DESC LIMIT 1").fetchone()
     conn.close()
     return {"profile": row_to_dict(row), "message": "Profile updated successfully."}
+
+# ── Goal Mode Endpoint ───────────────────────────────────────────────
+@app.put("/api/goal-mode")
+async def update_goal_mode(data: GoalModeUpdate):
+    conn = get_db()
+    try:
+        profile = conn.execute("SELECT id FROM user_profile ORDER BY id DESC LIMIT 1").fetchone()
+        if not profile:
+            raise HTTPException(status_code=404, detail="No profile found. Create a profile first.")
+
+        profile_id = profile["id"]
+        conn.execute("UPDATE user_profile SET goal_mode = ? WHERE id = ?", (data.goal_mode, profile_id))
+
+        if data.calorie_adjustment is not None:
+            if data.goal_mode == "deficit":
+                adj = max(0, min(2000, data.calorie_adjustment))
+                conn.execute("UPDATE user_profile SET calorie_deficit = ? WHERE id = ?", (adj, profile_id))
+            elif data.goal_mode == "surplus":
+                adj = max(0, min(1000, data.calorie_adjustment))
+                conn.execute("UPDATE user_profile SET calorie_surplus = ? WHERE id = ?", (adj, profile_id))
+
+        conn.execute("UPDATE user_profile SET updated_at = CURRENT_TIMESTAMP WHERE id = ?", (profile_id,))
+        conn.commit()
+
+        return {"message": f"Goal mode set to {data.goal_mode}", "goal_mode": data.goal_mode}
+    finally:
+        conn.close()
 
 # ── Food Endpoints ───────────────────────────────────────────────────
 @app.post("/api/food")

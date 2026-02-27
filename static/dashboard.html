@@ -507,6 +507,248 @@
         .coaching-stat-card .value { font-size: 16px; }
         .coaching-priority { font-size: 12px; }
     }
+
+    /* ─── Goal Slider ─────────────────────────────────────────── */
+    .goal-slider-container {
+        background: var(--surface);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        padding: 14px 16px 12px;
+        margin-bottom: 10px;
+        transition: border-color 0.3s, opacity 0.3s;
+        position: relative;
+    }
+    .goal-slider-container.unlocked {
+        border-color: rgba(62, 207, 142, 0.2);
+    }
+    .goal-slider-container.dragging {
+        border-color: rgba(62, 207, 142, 0.4);
+    }
+
+    .goal-slider-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 14px;
+        gap: 8px;
+    }
+    .goal-slider-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .goal-slider-adjustment {
+        font-size: 21px;
+        font-weight: 700;
+        line-height: 1.1;
+    }
+    .goal-slider-weekly {
+        font-size: 13px;
+        margin-top: 4px;
+        color: var(--text-dim);
+    }
+
+    .goal-slider-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+    .goal-slider-target {
+        text-align: right;
+    }
+    .goal-slider-target-value {
+        font-size: 24px;
+        font-weight: 700;
+        font-family: 'Space Mono', monospace;
+        line-height: 1;
+    }
+    .goal-slider-target-label {
+        font-size: 9px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 1px;
+    }
+
+    /* Lock button */
+    .goal-lock-btn {
+        background: var(--surface2);
+        border: 1.5px solid var(--border);
+        border-radius: 8px;
+        padding: 5px 9px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer;
+        color: #6b7280;
+        font-size: 10px;
+        font-weight: 700;
+        font-family: inherit;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+        transition: all 0.25s;
+    }
+    .goal-lock-btn.unlocked {
+        background: rgba(62, 207, 142, 0.08);
+        border-color: rgba(62, 207, 142, 0.25);
+        color: var(--accent);
+    }
+    .goal-lock-btn.flash {
+        transform: scale(1.1);
+        box-shadow: 0 0 14px rgba(62, 207, 142, 0.2);
+    }
+
+    /* Slider track */
+    .goal-slider-track {
+        position: relative;
+        height: 36px;
+        cursor: default;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .goal-slider-track.unlocked {
+        cursor: pointer;
+    }
+
+    .goal-slider-gradient {
+        position: absolute;
+        top: 13px;
+        left: 0; right: 0;
+        height: 10px;
+        border-radius: 5px;
+        transition: opacity 0.4s;
+    }
+    .goal-slider-container.locked .goal-slider-gradient {
+        opacity: 0.35;
+    }
+
+    .goal-slider-fill {
+        position: absolute;
+        top: 13px;
+        height: 10px;
+        border-radius: 5px;
+        transition: all 0.2s;
+    }
+    .goal-slider-container.locked .goal-slider-fill {
+        opacity: 0.25;
+    }
+    .goal-slider-container.dragging .goal-slider-fill {
+        transition: opacity 0.3s;
+    }
+
+    .goal-slider-center-line {
+        position: absolute;
+        top: 8px;
+        width: 2px;
+        height: 20px;
+        background: var(--accent);
+        border-radius: 1px;
+        transform: translateX(-50%);
+        transition: opacity 0.3s;
+    }
+    .goal-slider-container.locked .goal-slider-center-line {
+        opacity: 0.25;
+    }
+
+    /* Thumb */
+    .goal-slider-thumb {
+        position: absolute;
+        top: 50%;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        transform: translate(-50%, -50%);
+        transition: all 0.25s;
+        z-index: 10;
+        cursor: grab;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .goal-slider-container.locked .goal-slider-thumb {
+        background: #555d68 !important;
+        border-color: #3a3f47;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        cursor: default;
+    }
+    .goal-slider-container.dragging .goal-slider-thumb {
+        width: 30px;
+        height: 30px;
+        cursor: grabbing;
+        transition: width 0.1s, height 0.1s, box-shadow 0.1s;
+    }
+
+    /* Tick marks */
+    .goal-slider-ticks {
+        position: absolute;
+        top: 28px;
+        left: 0; right: 0;
+        pointer-events: none;
+    }
+    .goal-slider-tick {
+        position: absolute;
+        transform: translateX(-50%);
+        font-size: 9px;
+        color: var(--text-dim);
+        opacity: 0;
+        transition: opacity 0.3s;
+        white-space: nowrap;
+        font-family: 'Space Mono', monospace;
+    }
+    .goal-slider-container.unlocked:hover .goal-slider-tick,
+    .goal-slider-container.dragging .goal-slider-tick {
+        opacity: 0.7;
+    }
+
+    /* Scale labels */
+    .goal-slider-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 6px;
+        padding: 0 2px;
+    }
+    .goal-slider-labels span {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: opacity 0.3s;
+    }
+    .goal-slider-container.locked .goal-slider-labels span {
+        opacity: 0.35;
+    }
+
+    /* Unlock hint toast */
+    .goal-unlock-hint {
+        position: absolute;
+        bottom: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface2);
+        color: var(--text);
+        font-size: 12px;
+        padding: 7px 16px;
+        border-radius: 10px;
+        white-space: nowrap;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        border: 1px solid var(--border);
+        z-index: 20;
+        animation: goalHintFadeIn 0.25s ease;
+    }
+    @keyframes goalHintFadeIn {
+        from { opacity: 0; transform: translate(-50%, 6px); }
+        to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    /* Auto-lock notice */
+    .goal-autolock-notice {
+        text-align: center;
+        font-size: 10px;
+        color: var(--text-dim);
+        opacity: 0.5;
+        margin-bottom: 6px;
+        margin-top: -4px;
+    }
     </style>
 </head>
 <body>
@@ -525,6 +767,50 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- Goal Slider -->
+        <div class="goal-slider-container locked" id="goalSliderContainer" style="display:none;">
+            <div class="goal-slider-header">
+                <div class="goal-slider-info">
+                    <div class="goal-slider-adjustment" id="goalAdjustmentText">&minus;500 <span style="font-size:12px;font-weight:400;color:var(--text-dim)">kcal/day</span></div>
+                    <div class="goal-slider-weekly" id="goalWeeklyText">&darr; Lose ~0.45 kg/week</div>
+                </div>
+                <div class="goal-slider-right">
+                    <button class="goal-lock-btn" id="goalLockBtn" onclick="toggleGoalLock()" aria-label="Toggle slider lock">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path id="goalLockPath" d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span id="goalLockLabel">Locked</span>
+                    </button>
+                    <div class="goal-slider-target">
+                        <div class="goal-slider-target-value" id="goalTargetValue">1885</div>
+                        <div class="goal-slider-target-label">daily target</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="goal-slider-track" id="goalSliderTrack">
+                <div class="goal-slider-gradient" id="goalGradient"></div>
+                <div class="goal-slider-fill" id="goalFill"></div>
+                <div class="goal-slider-center-line" id="goalCenterLine"></div>
+                <div class="goal-slider-ticks" id="goalTicks"></div>
+                <div class="goal-slider-thumb" id="goalThumb"></div>
+            </div>
+
+            <div class="goal-slider-labels">
+                <span style="color:var(--protein)">Lose</span>
+                <span style="color:var(--accent)">Maintain</span>
+                <span style="color:var(--fat)">Gain</span>
+            </div>
+
+            <div class="goal-unlock-hint" id="goalUnlockHint" style="display:none;">
+                Tap <strong style="color:var(--accent)">Open</strong> to adjust your goal
+            </div>
+        </div>
+        <div class="goal-autolock-notice" id="goalAutolockNotice" style="display:none;">
+            Auto-locks after inactivity
+        </div>
+
         <!-- Gamification Bar -->
         <div class="gamification-bar">
             <div class="gamification-streak">
@@ -1066,10 +1352,24 @@
         let pollInterval = null;
         const POLL_INTERVAL_MS = 30000;
 
+        // Goal slider state
+        let goalSliderLocked = true;
+        let goalSliderDragging = false;
+        let goalAdjustment = -500;
+        let goalTDEE = 2300;
+        let goalAutoLockTimer = null;
+        let goalHintTimer = null;
+
+        const GOAL_MIN_ADJ = -1000;
+        const GOAL_MAX_ADJ = 500;
+        const GOAL_RANGE = GOAL_MAX_ADJ - GOAL_MIN_ADJ;
+        const KCAL_PER_KG = 7700;
+
         // ─── Init ────────────────────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('dateSelector').value = currentDate;
             initTabs();
+            initGoalSlider();
             loadOverview();
             loadProfile();
             startPolling();
@@ -1322,6 +1622,282 @@
             loadOverview();
         }
 
+        // ═══════════════════════════════════════════════════════════════════
+        // GOAL SLIDER
+        // ═══════════════════════════════════════════════════════════════════
+
+        function goalAdjToPercent(adj) {
+            return ((adj - GOAL_MIN_ADJ) / GOAL_RANGE) * 100;
+        }
+
+        function goalPercentToAdj(pct) {
+            return GOAL_MIN_ADJ + (pct / 100) * GOAL_RANGE;
+        }
+
+        function goalSnapAdj(adj) {
+            if (Math.abs(adj) < 30) return 0;
+            return Math.round(adj / 25) * 25;
+        }
+
+        function goalGetColor(pct) {
+            const zeroPoint = goalAdjToPercent(0);
+            if (pct < zeroPoint - 10) {
+                const t = pct / (zeroPoint - 10);
+                return `rgb(${Math.round(30 + t * 32)},${Math.round(100 + t * 107)},${Math.round(250 - t * 108)})`;
+            }
+            if (pct > zeroPoint + 10) {
+                const t = (pct - zeroPoint - 10) / (100 - zeroPoint - 10);
+                return `rgb(${Math.round(62 + t * 186)},${Math.round(207 - t * 94)},${Math.round(142 - t * 29)})`;
+            }
+            return '#3ecf8e';
+        }
+
+        function goalAdjToMode(adj) {
+            if (adj < -25) return 'deficit';
+            if (adj > 25) return 'surplus';
+            return 'maintain';
+        }
+
+        function initGoalSlider() {
+            const container = document.getElementById('goalSliderContainer');
+            const track = document.getElementById('goalSliderTrack');
+            const thumb = document.getElementById('goalThumb');
+            if (!container || !track || !thumb) return;
+
+            const zeroPct = goalAdjToPercent(0);
+
+            // Set gradient
+            const gradient = document.getElementById('goalGradient');
+            gradient.style.background = `linear-gradient(to right,
+                #2563eb 0%, #60a5fa 30%,
+                #3ecf8e ${zeroPct - 5}%, #3ecf8e ${zeroPct + 3}%,
+                #f87171 ${zeroPct + 20}%, #ef4444 100%)`;
+
+            // Render tick marks
+            const ticksContainer = document.getElementById('goalTicks');
+            const ticks = [
+                { adj: -1000, label: '\u22121kg' }, { adj: -750, label: '\u22120.75' },
+                { adj: -500, label: '\u22120.5' }, { adj: -250, label: '\u22120.25' },
+                { adj: 0, label: '' }, { adj: 250, label: '+0.25' }, { adj: 500, label: '+0.5' }
+            ];
+            ticksContainer.innerHTML = ticks.map(t => {
+                const tp = goalAdjToPercent(t.adj);
+                return `<div class="goal-slider-tick" style="left:${tp}%">${t.label}</div>`;
+            }).join('');
+
+            // Center line position
+            document.getElementById('goalCenterLine').style.left = zeroPct + '%';
+
+            // Touch + mouse events on track
+            function startDrag(e) {
+                if (goalSliderLocked) {
+                    flashGoalLock();
+                    return;
+                }
+                e.preventDefault();
+                goalSliderDragging = true;
+                container.classList.add('dragging');
+                updateGoalThumbFromEvent(e);
+            }
+
+            track.addEventListener('mousedown', startDrag);
+            track.addEventListener('touchstart', startDrag, { passive: false });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!goalSliderDragging) return;
+                e.preventDefault();
+                updateGoalThumbFromEvent(e);
+            });
+            document.addEventListener('touchmove', function(e) {
+                if (!goalSliderDragging) return;
+                e.preventDefault();
+                updateGoalThumbFromEvent(e);
+            }, { passive: false });
+
+            document.addEventListener('mouseup', endGoalDrag);
+            document.addEventListener('touchend', endGoalDrag);
+
+            // Initial render
+            renderGoalSlider();
+            container.style.display = '';
+        }
+
+        function updateGoalThumbFromEvent(e) {
+            const track = document.getElementById('goalSliderTrack');
+            if (!track) return;
+            const rect = track.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let pct = ((clientX - rect.left) / rect.width) * 100;
+            pct = Math.max(0, Math.min(100, pct));
+            goalAdjustment = goalSnapAdj(goalPercentToAdj(pct));
+            renderGoalSlider();
+        }
+
+        function endGoalDrag() {
+            if (!goalSliderDragging) return;
+            goalSliderDragging = false;
+            const container = document.getElementById('goalSliderContainer');
+            if (container) container.classList.remove('dragging');
+            saveGoalMode();
+            resetGoalAutoLock();
+        }
+
+        function renderGoalSlider() {
+            const pct = goalAdjToPercent(goalAdjustment);
+            const zeroPct = goalAdjToPercent(0);
+            const color = goalGetColor(pct);
+            const calorieGoal = goalTDEE + goalAdjustment;
+            const kgPerWeek = (goalAdjustment * 7) / KCAL_PER_KG;
+
+            // Thumb
+            const thumb = document.getElementById('goalThumb');
+            if (thumb) {
+                thumb.style.left = pct + '%';
+                if (!goalSliderLocked) {
+                    thumb.style.background = color;
+                }
+            }
+
+            // Fill bar from center to thumb
+            const fill = document.getElementById('goalFill');
+            if (fill) {
+                if (goalAdjustment <= 0) {
+                    fill.style.left = pct + '%';
+                    fill.style.width = (zeroPct - pct) + '%';
+                } else {
+                    fill.style.left = zeroPct + '%';
+                    fill.style.width = (pct - zeroPct) + '%';
+                }
+                fill.style.background = color;
+            }
+
+            // Adjustment text
+            const adjText = document.getElementById('goalAdjustmentText');
+            if (adjText) {
+                if (goalAdjustment === 0) {
+                    adjText.innerHTML = `<span style="color:${color}">Maintenance</span>`;
+                } else {
+                    const sign = goalAdjustment > 0 ? '+' : '';
+                    adjText.innerHTML = `<span style="color:${color}">${sign}${goalAdjustment}</span> <span style="font-size:12px;font-weight:400;color:var(--text-dim)">kcal/day</span>`;
+                }
+            }
+
+            // Weekly projection
+            const weeklyText = document.getElementById('goalWeeklyText');
+            if (weeklyText) {
+                if (Math.abs(goalAdjustment) < 30) {
+                    weeklyText.innerHTML = `<span style="color:#3ecf8e">\u2696\uFE0F Maintain weight</span>`;
+                } else if (goalAdjustment < 0) {
+                    weeklyText.innerHTML = `<span style="color:#60a5fa">\u2193 Lose ~${Math.abs(kgPerWeek).toFixed(2)} kg/week</span>`;
+                } else {
+                    weeklyText.innerHTML = `<span style="color:#f87171">\u2191 Gain ~${Math.abs(kgPerWeek).toFixed(2)} kg/week</span>`;
+                }
+            }
+
+            // Daily target
+            const targetVal = document.getElementById('goalTargetValue');
+            if (targetVal) targetVal.textContent = Math.max(Math.round(calorieGoal), 1200);
+        }
+
+        function toggleGoalLock() {
+            goalSliderLocked = !goalSliderLocked;
+            const container = document.getElementById('goalSliderContainer');
+            const btn = document.getElementById('goalLockBtn');
+            const label = document.getElementById('goalLockLabel');
+            const lockPath = document.getElementById('goalLockPath');
+            const track = document.getElementById('goalSliderTrack');
+            const notice = document.getElementById('goalAutolockNotice');
+            const hint = document.getElementById('goalUnlockHint');
+
+            if (goalSliderLocked) {
+                container.classList.add('locked');
+                container.classList.remove('unlocked');
+                btn.classList.remove('unlocked');
+                label.textContent = 'Locked';
+                lockPath.setAttribute('d', 'M7 11V7a5 5 0 0 1 10 0v4');
+                track.classList.remove('unlocked');
+                if (notice) notice.style.display = 'none';
+                if (goalAutoLockTimer) clearTimeout(goalAutoLockTimer);
+            } else {
+                container.classList.remove('locked');
+                container.classList.add('unlocked');
+                btn.classList.add('unlocked');
+                label.textContent = 'Open';
+                lockPath.setAttribute('d', 'M7 11V7a5 5 0 0 1 9.9-1');
+                track.classList.add('unlocked');
+                if (notice) notice.style.display = '';
+                resetGoalAutoLock();
+            }
+
+            if (hint) hint.style.display = 'none';
+            renderGoalSlider();
+        }
+
+        function flashGoalLock() {
+            const btn = document.getElementById('goalLockBtn');
+            const hint = document.getElementById('goalUnlockHint');
+
+            if (btn) {
+                btn.classList.add('flash');
+                setTimeout(() => btn.classList.remove('flash'), 600);
+            }
+            if (hint) {
+                hint.style.display = '';
+                if (goalHintTimer) clearTimeout(goalHintTimer);
+                goalHintTimer = setTimeout(() => { hint.style.display = 'none'; }, 2500);
+            }
+        }
+
+        function resetGoalAutoLock() {
+            if (goalAutoLockTimer) clearTimeout(goalAutoLockTimer);
+            if (!goalSliderLocked && !goalSliderDragging) {
+                goalAutoLockTimer = setTimeout(() => {
+                    if (!goalSliderLocked && !goalSliderDragging) {
+                        goalSliderLocked = false;
+                        toggleGoalLock();
+                    }
+                }, 8000);
+            }
+        }
+
+        async function saveGoalMode() {
+            const mode = goalAdjToMode(goalAdjustment);
+            const adj = Math.abs(goalAdjustment);
+            try {
+                await fetch(`${API}/api/goal-mode`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        goal_mode: mode,
+                        calorie_adjustment: adj
+                    })
+                });
+                loadOverview();
+            } catch (err) {
+                console.error('Failed to save goal mode:', err);
+            }
+        }
+
+        function loadGoalSliderFromSummary(data) {
+            const mode = data.goal_mode || 'deficit';
+            const deficit = data.calorie_deficit || 500;
+            const surplus = data.calorie_surplus || 300;
+            goalTDEE = data.tdee || data.effective_tdee || data.calorie_goal || 2300;
+
+            if (mode === 'deficit') {
+                goalAdjustment = -deficit;
+            } else if (mode === 'surplus') {
+                goalAdjustment = surplus;
+            } else {
+                goalAdjustment = 0;
+            }
+
+            renderGoalSlider();
+
+            const container = document.getElementById('goalSliderContainer');
+            if (container) container.style.display = '';
+        }
+
         // ─── Tabs ────────────────────────────────────────────────────────
         function initTabs() {
             document.querySelectorAll('.tab').forEach(tab => {
@@ -1351,10 +1927,15 @@
                 
                 if (data.error) {
                     console.warn(data.error);
+                    const gsContainer = document.getElementById('goalSliderContainer');
+                    if (gsContainer) gsContainer.style.display = 'none';
                     return;
                 }
 
                 const { goals, intake, remaining, food_entries, activities, latest_weight, profile } = data;
+
+                // Sync goal slider with server data
+                loadGoalSliderFromSummary({ ...goals, ...profile });
 
                 // Calorie ring
                 const pct = goals.calorie_goal > 0 ? Math.min(intake.calories / goals.calorie_goal, 1.5) : 0;

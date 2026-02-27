@@ -122,6 +122,17 @@ def init_db():
         CREATE INDEX IF NOT EXISTS idx_coaching_created ON coaching_reports(created_at);
         CREATE INDEX IF NOT EXISTS idx_coaching_week ON coaching_reports(week_start, week_end);
     """)
+    # ── Safe migrations for new columns ──
+    try:
+        cursor.execute("ALTER TABLE user_profile ADD COLUMN goal_mode TEXT NOT NULL DEFAULT 'deficit' CHECK(goal_mode IN ('deficit', 'maintain', 'surplus'))")
+    except:
+        pass
+
+    try:
+        cursor.execute("ALTER TABLE user_profile ADD COLUMN calorie_surplus INTEGER NOT NULL DEFAULT 300")
+    except:
+        pass
+
     conn.commit()
     conn.close()
     print(f"Database initialized at {DB_PATH}")
@@ -156,23 +167,35 @@ def calculate_daily_goals(profile: dict, activity_calories: float = 0) -> dict:
         profile["current_weight_kg"], profile["height_cm"], profile["age"], profile["sex"]
     )
     tdee = calculate_tdee(bmr, profile["activity_level"])
-    deficit = profile.get("calorie_deficit", 500)
-    
-    # Add exercise calories to TDEE before applying deficit
+    calorie_deficit = profile.get("calorie_deficit", 500) if isinstance(profile, dict) else (profile["calorie_deficit"] if "calorie_deficit" in profile.keys() else 500)
+    goal_mode = profile.get("goal_mode", "deficit") if isinstance(profile, dict) else (profile["goal_mode"] if "goal_mode" in profile.keys() else "deficit")
+    calorie_surplus = profile.get("calorie_surplus", 300) if isinstance(profile, dict) else (profile["calorie_surplus"] if "calorie_surplus" in profile.keys() else 300)
+
+    # Add exercise calories to TDEE before applying deficit/surplus
     effective_tdee = tdee + activity_calories
-    calorie_goal = effective_tdee - deficit
-    
+
+    if goal_mode == "surplus":
+        calorie_goal = effective_tdee + calorie_surplus
+    elif goal_mode == "maintain":
+        calorie_goal = effective_tdee
+    else:  # deficit (default, backward compatible)
+        calorie_goal = effective_tdee - calorie_deficit
+
+    calorie_goal = max(calorie_goal, 1200)
+
     # Macro split: 30% protein, 40% carbs, 30% fat
     protein_goal = round((calorie_goal * 0.30) / 4, 1)
     carbs_goal = round((calorie_goal * 0.40) / 4, 1)
     fat_goal = round((calorie_goal * 0.30) / 9, 1)
-    
+
     return {
         "bmr": bmr,
         "tdee": tdee,
         "activity_calories": activity_calories,
         "effective_tdee": effective_tdee,
-        "calorie_deficit": deficit,
+        "calorie_deficit": calorie_deficit,
+        "calorie_surplus": calorie_surplus,
+        "goal_mode": goal_mode,
         "calorie_goal": round(calorie_goal, 1),
         "protein_goal_g": protein_goal,
         "carbs_goal_g": carbs_goal,
