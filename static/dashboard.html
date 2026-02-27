@@ -90,9 +90,14 @@
         .meal-dinner { background: rgba(167, 139, 250, 0.15); color: #a78bfa; }
         .meal-snack { background: rgba(248, 113, 113, 0.15); color: #f87171; }
         .food-log .mono { font-family: 'Space Mono', monospace; font-size: 0.82rem; }
-        .food-log .delete-btn, .food-log .add-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem; opacity: 0.5; transition: all 0.15s; }
-        .food-log .delete-btn:hover { opacity: 1; color: var(--danger); }
-        .food-log .add-btn:hover { opacity: 1; color: var(--accent); }
+        .food-log .action-cell { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+        .food-log .action-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 8px; border: none; cursor: pointer; font-size: 1rem; transition: all 0.15s; background: rgba(255,255,255,0.04); }
+        .food-log .star-btn { color: #fbbf24; opacity: 0.55; }
+        .food-log .star-btn:hover { opacity: 1; background: rgba(251,191,36,0.12); }
+        .food-log .add-btn { color: #3ecf8e; opacity: 0.55; }
+        .food-log .add-btn:hover { opacity: 1; background: rgba(62,207,142,0.12); }
+        .food-log .delete-btn { color: #f87171; opacity: 0.55; }
+        .food-log .delete-btn:hover { opacity: 1; background: rgba(248,113,113,0.12); }
 
         /* ─── Charts ─────────────────────────────────────────────── */
         .chart-container { position: relative; height: 300px; width: 100%; }
@@ -487,6 +492,8 @@
         /* Table */
         .food-log { overflow-x: auto; display: block; }
         .food-log table { min-width: 100%; }
+        .food-log .action-btn { width: 40px; height: 40px; font-size: 1.1rem; }
+        .food-log .action-cell { gap: 10px; }
 
         /* Charts */
         .chart-container { height: 250px; }
@@ -2031,8 +2038,11 @@
                     <td class="mono" style="color:var(--carbs);">${Math.round(e.carbs_g)}</td>
                     <td class="mono" style="color:var(--fat);">${Math.round(e.fat_g)}</td>
                     <td style="text-align:right">
-                        <button class="add-btn" onclick="duplicateFood(${e.id})" title="Duplicate (+)">+</button>
-                        <button class="delete-btn" onclick="deleteFood(${e.id})" title="Delete">×</button>
+                        <div class="action-cell">
+                            <button class="action-btn star-btn" onclick="addToOftenUsed(${e.id}, this)" title="Save to often-used">☆</button>
+                            <button class="action-btn add-btn" onclick="duplicateFood(${e.id})" title="Duplicate (+)">+</button>
+                            <button class="action-btn delete-btn" onclick="deleteFood(${e.id})" title="Delete">×</button>
+                        </div>
                     </td>
                 </tr>`;
             }).join('');
@@ -2108,6 +2118,33 @@
                 
             } catch (e) {
                 console.error("Duplicate failed", e);
+            }
+        }
+
+        async function addToOftenUsed(entryId, btn) {
+            try {
+                const res = await fetch(`${API}/api/food/often-used/add-from-entry`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ food_entry_id: entryId })
+                });
+                const data = await res.json();
+
+                if (data.status === 'added') {
+                    showToast(data.message);
+                    btn.textContent = '★';
+                    btn.style.opacity = '1';
+                    setTimeout(() => { btn.textContent = '☆'; btn.style.opacity = ''; }, 1500);
+                } else if (data.status === 'exists') {
+                    showToast(data.message);
+                } else if (data.status === 'full') {
+                    showToast(data.message);
+                } else {
+                    showToast(data.detail || 'Something went wrong');
+                }
+            } catch (e) {
+                console.error("Add to often-used failed", e);
+                showToast('Failed to save to often-used');
             }
         }
 

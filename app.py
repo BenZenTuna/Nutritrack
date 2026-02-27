@@ -108,6 +108,9 @@ class OftenUsedItem(BaseModel):
 class OftenUsedUpdate(BaseModel):
     items: list[OftenUsedItem]
 
+class AddFromEntry(BaseModel):
+    food_entry_id: int
+
 class DailyCoaching(BaseModel):
     coaching_date: str  # YYYY-MM-DD
     coaching_text: str  # Full coaching tip (can be multi-line)
@@ -409,6 +412,51 @@ def add_often_used_to_today(item_id: int):
         "entry_name": item["name"],
         "date": today_str,
         "calories": item["calories"],
+    }
+
+@app.post("/api/food/often-used/add-from-entry")
+def add_to_often_used_from_entry(data: AddFromEntry):
+    """Save a food log entry to the often-used foods list."""
+    conn = get_db()
+    entry = conn.execute("SELECT * FROM food_entries WHERE id = ?", (data.food_entry_id,)).fetchone()
+    if not entry:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Food entry not found")
+
+    # Check if already exists (case-insensitive, trimmed)
+    existing = conn.execute(
+        "SELECT id FROM often_used_foods WHERE TRIM(LOWER(name)) = TRIM(LOWER(?))",
+        (entry["name"],)
+    ).fetchone()
+    if existing:
+        conn.close()
+        return {"status": "exists", "message": f"{entry['name']} is already in your often-used foods"}
+
+    # Enforce 15-item max
+    count = conn.execute("SELECT COUNT(*) FROM often_used_foods").fetchone()[0]
+    if count >= 15:
+        conn.close()
+        return {"status": "full", "message": "Often-used list is full (max 15 items). Remove an item first or let the agent curate it."}
+
+    # Get next sort_order
+    max_order = conn.execute("SELECT MAX(sort_order) FROM often_used_foods").fetchone()[0]
+    next_order = (max_order + 1) if max_order is not None else 0
+
+    conn.execute(
+        "INSERT INTO often_used_foods (name, calories, protein_g, carbs_g, fat_g, meal_type, sort_order) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (entry["name"], entry["calories"], entry["protein_g"], entry["carbs_g"],
+         entry["fat_g"], entry["meal_type"], next_order)
+    )
+    conn.commit()
+
+    item = conn.execute("SELECT * FROM often_used_foods WHERE sort_order = ?", (next_order,)).fetchone()
+    conn.close()
+
+    return {
+        "status": "added",
+        "message": f"Added {entry['name']} to often-used foods",
+        "item": dict(item)
     }
 
 @app.get("/api/food/range")
