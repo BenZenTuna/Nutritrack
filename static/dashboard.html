@@ -1009,9 +1009,9 @@
                         </div>
                     </div>
                     <div>
-                        <div style="font-size:0.78rem;color:var(--text-dim);">Deficit Target</div>
-                        <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--danger);">
-                            <span id="deficitTarget">500</span> <span class="card-unit">kcal</span>
+                        <div id="goalAdjLabel" style="font-size:0.78rem;color:var(--text-dim);">Goal Adjustment</div>
+                        <div style="font-family:'Space Mono',monospace;font-size:1.1rem;font-weight:700;">
+                            <span id="goalAdjValue" style="color:var(--accent);">0</span> <span class="card-unit">kcal</span>
                         </div>
                     </div>
                 </div>
@@ -1343,10 +1343,6 @@
                     <label>Goal Weight (kg)</label>
                     <input type="number" id="pGoalWeight" min="20" max="500" step="0.1" placeholder="78">
                 </div>
-                <div class="form-group">
-                    <label>Calorie Deficit (kcal)</label>
-                    <input type="number" id="pDeficit" min="0" max="2000" value="500">
-                </div>
             </div>
             <button class="btn-save" onclick="saveProfile()" style="margin-top:1rem;">Save Profile</button>
             <div id="profileMsg" style="margin-top:0.75rem;font-size:0.9rem;color:var(--accent);display:none;"></div>
@@ -1355,7 +1351,7 @@
                 <div class="calc-targets-grid" id="calcTargets">
                     <div><span style="color:var(--text-dim);font-size:0.78rem;">BMR</span><br><span class="mono" id="calcBMR">—</span> kcal</div>
                     <div><span style="color:var(--text-dim);font-size:0.78rem;">TDEE</span><br><span class="mono" id="calcTDEE">—</span> kcal</div>
-                    <div><span style="color:var(--text-dim);font-size:0.78rem;">Calorie Goal</span><br><span class="mono" id="calcCalGoal" style="color:var(--accent);">—</span> kcal</div>
+                    <div><span id="calc-goal-label" style="color:var(--text-dim);font-size:0.78rem;">Calorie Goal</span><br><span class="mono" id="calcCalGoal" style="color:var(--accent);">—</span> kcal</div>
                     <div><span style="color:var(--text-dim);font-size:0.78rem;">Protein</span><br><span class="mono" id="calcProt" style="color:var(--protein);">—</span> g</div>
                     <div><span style="color:var(--text-dim);font-size:0.78rem;">Carbs</span><br><span class="mono" id="calcCarbs" style="color:var(--carbs);">—</span> g</div>
                     <div><span style="color:var(--text-dim);font-size:0.78rem;">Fat</span><br><span class="mono" id="calcFat" style="color:var(--fat);">—</span> g</div>
@@ -2012,7 +2008,23 @@
                 // Quick stats
                 document.getElementById('currentWeight').textContent = latest_weight ? latest_weight.weight_kg : '—';
                 document.getElementById('goalWeight').textContent = profile?.weight_goal_kg || '—';
-                document.getElementById('deficitTarget').textContent = profile?.calorie_deficit || 500;
+                const adjLabel = document.getElementById('goalAdjLabel');
+                const adjValue = document.getElementById('goalAdjValue');
+                if (adjLabel && adjValue) {
+                    if (goalAdjustment < -25) {
+                        adjLabel.textContent = 'Deficit';
+                        adjValue.textContent = Math.abs(goalAdjustment);
+                        adjValue.style.color = 'var(--danger)';
+                    } else if (goalAdjustment > 25) {
+                        adjLabel.textContent = 'Surplus';
+                        adjValue.textContent = '+' + goalAdjustment;
+                        adjValue.style.color = 'var(--warning)';
+                    } else {
+                        adjLabel.textContent = 'Maintain';
+                        adjValue.textContent = '0';
+                        adjValue.style.color = 'var(--accent)';
+                    }
+                }
                 
                 const burned = activities.reduce((sum, a) => sum + a.calories_burned, 0);
                 document.getElementById('activityBurned').textContent = Math.round(burned);
@@ -2869,7 +2881,6 @@
                     document.getElementById('pWeight').value = p.current_weight_kg || '';
                     document.getElementById('pActivity').value = p.activity_level || 'moderate';
                     document.getElementById('pGoalWeight').value = p.weight_goal_kg || '';
-                    document.getElementById('pDeficit').value = p.calorie_deficit || 500;
                     updateCalcTargets(p);
                 }
             } catch (err) {
@@ -2881,20 +2892,28 @@
             // Simple client-side calculation for display
             let bmr = 10 * p.current_weight_kg + 6.25 * p.height_cm - 5 * p.age;
             bmr += p.sex === 'male' ? 5 : -161;
-            
+
             const mult = { sedentary: 1.2, light: 1.375, moderate: 1.55, active: 1.725, very_active: 1.9 };
             const tdee = bmr * (mult[p.activity_level] || 1.55);
-            const goal = tdee - (p.calorie_deficit || 500);
-            
+            const goal = tdee + goalAdjustment;
+
             document.getElementById('calcBMR').textContent = Math.round(bmr);
             document.getElementById('calcTDEE').textContent = Math.round(tdee);
             document.getElementById('calcCalGoal').textContent = Math.round(goal);
             document.getElementById('calcProt').textContent = Math.round((goal * 0.30) / 4);
             document.getElementById('calcCarbs').textContent = Math.round((goal * 0.40) / 4);
             document.getElementById('calcFat').textContent = Math.round((goal * 0.30) / 9);
+
+            const goalLabel = document.getElementById('calc-goal-label');
+            if (goalLabel) {
+                if (goalAdjustment < -25) goalLabel.textContent = 'Calorie Goal (deficit)';
+                else if (goalAdjustment > 25) goalLabel.textContent = 'Calorie Goal (surplus)';
+                else goalLabel.textContent = 'Calorie Goal (maintain)';
+            }
         }
 
         async function saveProfile() {
+            const mode = goalAdjustment < -25 ? 'deficit' : goalAdjustment > 25 ? 'surplus' : 'maintain';
             const payload = {
                 age: parseInt(document.getElementById('pAge').value),
                 sex: document.getElementById('pSex').value,
@@ -2902,7 +2921,9 @@
                 current_weight_kg: parseFloat(document.getElementById('pWeight').value),
                 activity_level: document.getElementById('pActivity').value,
                 weight_goal_kg: parseFloat(document.getElementById('pGoalWeight').value) || null,
-                calorie_deficit: parseInt(document.getElementById('pDeficit').value) || 500,
+                calorie_deficit: mode === 'deficit' ? Math.abs(goalAdjustment) : 0,
+                calorie_surplus: mode === 'surplus' ? goalAdjustment : 0,
+                goal_mode: mode,
             };
 
             try {
