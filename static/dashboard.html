@@ -2329,6 +2329,8 @@
             destroyChart('macro');
             const ctx = document.getElementById('macroChart').getContext('2d');
 
+            const noLog = data.map(d => d.protein_g === 0 && d.carbs_g === 0 && d.fat_g === 0 && d.calories === 0);
+
             charts.macro = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2337,30 +2339,33 @@
                         // Actual data
                         {
                             label: 'Protein (g)',
-                            data: data.map(d => d.protein_g),
+                            data: data.map((d, i) => noLog[i] ? null : d.protein_g),
                             borderColor: '#60a5fa',
                             backgroundColor: 'rgba(96,165,250,0.1)',
                             fill: true,
                             tension: 0.3,
-                            pointRadius: 2
+                            pointRadius: 2,
+                            spanGaps: false
                         },
                         {
                             label: 'Carbs (g)',
-                            data: data.map(d => d.carbs_g),
+                            data: data.map((d, i) => noLog[i] ? null : d.carbs_g),
                             borderColor: '#fbbf24',
                             backgroundColor: 'rgba(251,191,36,0.1)',
                             fill: true,
                             tension: 0.3,
-                            pointRadius: 2
+                            pointRadius: 2,
+                            spanGaps: false
                         },
                         {
                             label: 'Fat (g)',
-                            data: data.map(d => d.fat_g),
+                            data: data.map((d, i) => noLog[i] ? null : d.fat_g),
                             borderColor: '#f87171',
                             backgroundColor: 'rgba(248,113,113,0.1)',
                             fill: true,
                             tension: 0.3,
-                            pointRadius: 2
+                            pointRadius: 2,
+                            spanGaps: false
                         },
                         // Target/goal dashed lines
                         {
@@ -2372,6 +2377,7 @@
                             pointRadius: 0,
                             fill: false,
                             tension: 0.3,
+                            spanGaps: true,
                         },
                         {
                             label: 'Carbs Target',
@@ -2382,6 +2388,7 @@
                             pointRadius: 0,
                             fill: false,
                             tension: 0.3,
+                            spanGaps: true,
                         },
                         {
                             label: 'Fat Target',
@@ -2392,6 +2399,7 @@
                             pointRadius: 0,
                             fill: false,
                             tension: 0.3,
+                            spanGaps: true,
                         },
                     ],
                 },
