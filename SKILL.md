@@ -17,48 +17,11 @@ You are connected to NutriTrack, a self-hosted nutrition and health tracking pla
 - **Health check**: `curl -s $NUTRITRACK_URL/api/profile` — if you get a JSON response, the server is up.
 - **Dashboard**: `$NUTRITRACK_URL` in a browser
 - **Swagger docs**: `$NUTRITRACK_URL/docs`
+- **Convention**: examples below omit `-H "Content-Type: application/json"` for brevity — always include it on POST/PUT.
 
-## Installation
+## Setup & Onboarding
 
-If NutriTrack is not running yet, deploy it with one command:
-
-```bash
-git clone https://github.com/BenZenTuna/Nutritrack.git
-cd Nutritrack
-chmod +x deploy.sh
-./deploy.sh
-```
-
-The script auto-detects Docker (if available) or falls back to Python venv — no prompts, no sudo.
-
-Management:
-- `./deploy.sh stop` — stop the server
-- `./deploy.sh status` — check if running
-- `./deploy.sh update` — pull latest code and restart
-
-After install, verify with: `curl -s http://localhost:8000/api/profile`
-
-For detailed agent deployment docs, see [docs/AGENT_DEPLOY.md](docs/AGENT_DEPLOY.md).
-
-## First-Time Setup
-
-Before logging any data, the user needs a profile. Ask for their details and create one:
-
-```bash
-curl -s -X PUT "$NUTRITRACK_URL/api/profile" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "age": 30,
-    "sex": "male",
-    "height_cm": 180,
-    "current_weight_kg": 85.0,
-    "activity_level": "moderate",
-    "weight_goal_kg": 78.0,
-    "calorie_deficit": 500
-  }'
-```
-
-Activity levels: `sedentary`, `light`, `moderate`, `active`, `very_active`
+If the server isn't running, the user has no profile yet, or you need to seed demo data — see `onboarding.md` (installation, first-time profile creation, demo seeding).
 
 ## Core Workflow
 
@@ -75,16 +38,7 @@ When the user mentions eating anything, estimate the nutritional values and log 
 
 ```bash
 curl -s -X POST "$NUTRITRACK_URL/api/food" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Grilled chicken breast with rice",
-    "calories": 520,
-    "protein_g": 42,
-    "carbs_g": 55,
-    "fat_g": 12,
-    "meal_type": "lunch",
-    "quantity": "200g chicken + 1 cup rice"
-  }'
+  -d '{"name":"Grilled chicken breast with rice","calories":520,"protein_g":42,"carbs_g":55,"fat_g":12,"meal_type":"lunch","quantity":"200g chicken + 1 cup rice"}'
 ```
 
 **Fields:**
@@ -111,24 +65,16 @@ curl -s -X POST "$NUTRITRACK_URL/api/food" \
 ## Logging Weight
 
 ```bash
-curl -s -X POST "$NUTRITRACK_URL/api/weight" \
-  -H "Content-Type: application/json" \
-  -d '{"weight_kg": 84.2, "notes": "Morning weigh-in"}'
+curl -s -X POST "$NUTRITRACK_URL/api/weight" -d '{"weight_kg":84.2,"notes":"Morning weigh-in"}'
 ```
 
-**Important side effect:** This also updates the user's profile weight, which recalculates all calorie goals.
+Side effect: also updates the user's profile weight, recalculating calorie goals.
 
 ## Logging Exercise
 
 ```bash
 curl -s -X POST "$NUTRITRACK_URL/api/activity" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "activity_type": "Running",
-    "duration_minutes": 30,
-    "calories_burned": 350,
-    "intensity": "moderate"
-  }'
+  -d '{"activity_type":"Running","duration_minutes":30,"calories_burned":350,"intensity":"moderate"}'
 ```
 
 **Calorie estimation formula:** `calories_burned = MET × weight_kg × duration_hours`
@@ -144,20 +90,13 @@ Common MET values:
 
 Intensity: `low`, `moderate`, or `high`
 
-**Important:** Exercise calories are added to the daily TDEE before the deficit is applied. So if the user burns 300 kcal running, their calorie goal increases by 300 kcal.
+Note: exercise calories raise the day's calorie goal by the same amount (added to TDEE before the deficit).
 
 ## Logging Health Vitals
 
 ```bash
 curl -s -X POST "$NUTRITRACK_URL/api/health" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "systolic_bp": 118,
-    "diastolic_bp": 76,
-    "blood_sugar": 92,
-    "blood_oxygen": 98,
-    "heart_rate": 68
-  }'
+  -d '{"systolic_bp":118,"diastolic_bp":76,"blood_sugar":92,"blood_oxygen":98,"heart_rate":68}'
 ```
 
 All fields are optional — log whatever the user provides.
@@ -196,14 +135,9 @@ Returns: streak_days (consecutive days under calorie goal), today_points (XP ear
 
 ### Food History
 ```bash
-# Today's food
-curl -s "$NUTRITRACK_URL/api/food?date=2026-02-17"
-
-# Date range
-curl -s "$NUTRITRACK_URL/api/food/range?start=2026-02-10&end=2026-02-17"
-
-# Search previously logged foods
-curl -s "$NUTRITRACK_URL/api/food/search?q=chicken"
+curl -s "$NUTRITRACK_URL/api/food?date=2026-02-17"                       # today
+curl -s "$NUTRITRACK_URL/api/food/range?start=2026-02-10&end=2026-02-17" # range
+curl -s "$NUTRITRACK_URL/api/food/search?q=chicken"                      # search
 ```
 
 ### Weight History
@@ -243,11 +177,7 @@ Returns items grouped by name with `count`, `min_cal/avg_cal/max_cal`, etc. This
 ### Step 3 — Write the curated list
 ```bash
 curl -s -X PUT "$NUTRITRACK_URL/api/food/often-used" \
-  -H "Content-Type: application/json" \
-  -d '{"items": [
-    {"name": "Boiled Egg (1 egg)", "calories": 78, "protein_g": 6, "carbs_g": 1, "fat_g": 5, "meal_type": "breakfast"},
-    {"name": "Chicken Breast (100g)", "calories": 165, "protein_g": 31, "carbs_g": 0, "fat_g": 3.6, "meal_type": "lunch"}
-  ]}'
+  -d '{"items":[{"name":"Boiled Egg (1 egg)","calories":78,"protein_g":6,"carbs_g":1,"fat_g":5,"meal_type":"breakfast"},{"name":"Chicken Breast (100g)","calories":165,"protein_g":31,"carbs_g":0,"fat_g":3.6,"meal_type":"lunch"}]}'
 ```
 This **replaces** the entire list. First item in the array = sort_order 0 (top of dashboard list).
 
@@ -262,15 +192,6 @@ curl -s -X POST "$NUTRITRACK_URL/api/food/often-used/42/add"
 ```
 Copies the item into today's food log.
 
-### API Reference
-
-| Action | Method | Endpoint |
-|--------|--------|----------|
-| Raw frequency data (for agent) | GET | `/api/food/history/frequent` |
-| Write curated list (agent only) | PUT | `/api/food/often-used` |
-| Read curated list (dashboard) | GET | `/api/food/often-used` |
-| Quick-add to today | POST | `/api/food/often-used/{id}/add` |
-
 ### When to curate
 - When the user says "update my often used tab" or similar
 - After the user has 2+ weeks of food history and the list is empty
@@ -278,23 +199,14 @@ Copies the item into today's food log.
 
 ## Goal Mode
 
-The user can set their daily calorie goal mode via the dashboard slider or via API:
-
-| Method | Path | Body | Response |
-|--------|------|------|----------|
-| PUT | `/api/goal-mode` | `{"goal_mode": "deficit\|maintain\|surplus", "calorie_adjustment": 500}` | `{"goal_mode": "...", "message": "..."}` |
+The user can set their daily calorie goal mode via the dashboard slider or via `PUT /api/goal-mode` with body `{"goal_mode": "deficit|maintain|surplus", "calorie_adjustment": 500}`.
 
 **Modes:**
 - `deficit`: Calorie Goal = TDEE − calorie_adjustment (weight loss)
 - `maintain`: Calorie Goal = TDEE (keep current weight)
 - `surplus`: Calorie Goal = TDEE + calorie_adjustment (weight gain)
 
-**calorie_adjustment** is optional. If provided:
-- In deficit mode: sets calorie_deficit (0–2000)
-- In surplus mode: sets calorie_surplus (0–1000)
-- In maintain mode: ignored
-
-The `GET /api/daily-summary` response includes `goal_mode`, `tdee`, `calorie_deficit`, and `calorie_surplus` fields.
+`calorie_adjustment` is optional: 0–2000 in deficit, 0–1000 in surplus, ignored in maintain. `GET /api/daily-summary` returns `goal_mode`, `tdee`, `calorie_deficit`, `calorie_surplus`.
 
 **Agent coaching awareness**: When writing daily coaching tips, reference the current mode:
 - Deficit: "You have X kcal remaining in your deficit budget..."
@@ -304,18 +216,11 @@ The `GET /api/daily-summary` response includes `goal_mode`, `tdee`, `calorie_def
 ## Editing and Deleting
 
 ```bash
-# Update a food entry
 curl -s -X PUT "$NUTRITRACK_URL/api/food/42" \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Updated meal", "calories": 400, "protein_g": 30, "carbs_g": 40, "fat_g": 15, "meal_type": "lunch"}'
-
-# Delete a food entry
+  -d '{"name":"Updated meal","calories":400,"protein_g":30,"carbs_g":40,"fat_g":15,"meal_type":"lunch"}'
 curl -s -X DELETE "$NUTRITRACK_URL/api/food/42"
-
-# Same pattern for activity and health:
-# PUT/DELETE /api/activity/{id}
-# PUT/DELETE /api/health/{id}
 ```
+Same `PUT/DELETE /api/{food|activity|health}/{id}` pattern for activity and health.
 
 ## CSV Export
 
@@ -324,21 +229,9 @@ curl -s "$NUTRITRACK_URL/api/export/csv?type=food&start=2026-02-01&end=2026-02-1
 ```
 Types: `food`, `weight`, `activity`, `health`
 
-## Demo Data
+## Background Reference
 
-To seed 30 days of realistic sample data (DESTRUCTIVE — clears existing data):
-```bash
-curl -s -X POST "$NUTRITRACK_URL/api/seed-demo-data"
-```
-
-## Calorie Calculation Engine
-
-NutriTrack uses the Mifflin-St Jeor equation:
-- Male BMR: `10 × weight(kg) + 6.25 × height(cm) - 5 × age + 5`
-- Female BMR: `10 × weight(kg) + 6.25 × height(cm) - 5 × age - 161`
-- TDEE = BMR × activity multiplier (sedentary=1.2, light=1.375, moderate=1.55, active=1.725, very_active=1.9)
-- Daily calorie goal = (TDEE + exercise_calories) - deficit
-- Macro split: 30% protein (÷4 cal/g), 40% carbs (÷4 cal/g), 30% fat (÷9 cal/g)
+For demo-data seeding and the Mifflin-St Jeor calorie/macro formulas the server uses, see `onboarding.md`. The server computes goals automatically — you don't need the formulas to operate.
 
 ## Response Style
 
@@ -352,59 +245,20 @@ When summarizing nutrition data for the user:
 
 ## Daily Post-Meal Coaching
 
-After EVERY time you log a food entry with POST /api/food, you MUST also update today's coaching tip. This is how it works:
+After EVERY `POST /api/food`, also update today's tip: fetch `GET /api/daily-summary`, analyze, then `PUT /api/coaching/daily` with these fields:
 
-1. Log the food: POST /api/food
-2. Fetch the current daily summary: GET /api/daily-summary
-3. Analyze the current state (calories remaining, macro balance, meal count)
-4. Write a short coaching tip and save it: PUT /api/coaching/daily
+- `coaching_date` (YYYY-MM-DD)
+- `coaching_text` (3–5 sentences: positive note on what they ate → what's missing with specific numbers → concrete next-meal suggestion → optional warning if a macro is trending bad, e.g. fat at 90% of goal)
+- `meal_count` (int)
+- `calories_so_far`, `calories_remaining` (int)
+- `protein_status` — vs. protein goal, paced by time of day:
+  - `"on_track"` (≥50% by lunch / on pace)
+  - `"low"` (~30% by lunch, recoverable)
+  - `"critical"` (<20% by dinner)
+  - `"exceeded"` (over goal)
+- `top_priority` — one short sentence, the single focus for the rest of the day. E.g. `"Get 80g more protein — chicken or fish at lunch"` or `"Over calorie goal by 200 — skip the evening snack"`.
 
-PUT /api/coaching/daily
-Content-Type: application/json
-
-```json
-{
-    "coaching_date": "2026-02-23",
-    "coaching_text": "Good protein start with eggs at breakfast. You have 1,200 kcal left and need about 80g more protein. Aim for chicken or fish at lunch to front-load protein. Keep carbs moderate — you've already had toast and oatmeal. A light dinner with salad and lean protein would close this day perfectly.",
-    "meal_count": 2,
-    "calories_so_far": 850,
-    "calories_remaining": 1200,
-    "protein_status": "low",
-    "top_priority": "Get 80g more protein — chicken or fish at lunch"
-}
-```
-
-### How to write coaching_text
-
-Keep it conversational, 3-5 sentences max. Structure it as:
-1. Quick assessment of what they've eaten so far (positive note first)
-2. What's missing or needs attention (be specific with numbers)
-3. Concrete suggestion for the next meal
-4. Optional: one warning if something is trending badly (e.g., fat already at 90% of goal)
-
-### How to set protein_status
-
-Look at the daily summary. Calculate protein eaten vs protein goal:
-- "on_track": protein is at or above expected pace for this time of day (e.g., 50%+ of goal by lunch)
-- "low": protein is behind pace but recoverable (e.g., 30% of goal by lunch)
-- "critical": protein is severely behind and will be very hard to catch up (e.g., <20% of goal by dinner)
-- "exceeded": protein already exceeds the daily goal
-
-### How to set top_priority
-
-One short sentence that the user sees at a glance without expanding the panel. This is the MOST IMPORTANT thing to focus on for the rest of the day. Examples:
-- "Get 80g more protein — chicken or fish at lunch"
-- "You're on track! Keep dinner under 600 kcal"
-- "Fat is at 95% of goal — avoid fried food and sauces tonight"
-- "Great day so far — a light salad dinner gets you to elite 💠"
-- "Over calorie goal by 200 — consider skipping the evening snack"
-
-### When to update
-
-Update the daily coaching tip EVERY time you log food. The tip should reflect the latest state. After breakfast the tip talks about lunch and dinner planning. After lunch it focuses on dinner. After dinner it either congratulates or suggests a light evening.
-
-GET /api/coaching/daily?date=YYYY-MM-DD
-Returns the current tip for a given date (defaults to today). The dashboard calls this automatically.
+`GET /api/coaching/daily?date=YYYY-MM-DD` returns the current tip (dashboard auto-fetches).
 
 ## Weekly Coaching Report
 
@@ -418,17 +272,10 @@ Your weekly coaching report appears on the dashboard's Coaching tab. Write it ev
 4. Analyze all data
 5. POST /api/coaching/report — save to dashboard
 
-POST /api/coaching/report
-Content-Type: application/json
-
-```json
-{
-    "week_start": "2026-02-17",
-    "week_end": "2026-02-23",
-    "report_text": "WEEKLY HEALTH REPORT — Feb 17–23, 2026\n\nTHE NUMBERS\nYou averaged 1,850 kcal per day against a 2,100 goal...",
-    "summary_json": "{\"avg_calories\": 1850, \"calorie_goal\": 2100, \"avg_protein_g\": 95, \"protein_goal_g\": 120, \"weight_start\": 84.2, \"weight_end\": 83.8, \"weight_change\": -0.4, \"streak_days\": 5, \"days_on_track\": 5, \"days_total\": 7, \"grade\": \"B+\", \"action_items\": [\"Add eggs to breakfast for +25g protein\", \"Replace afternoon biscuits with Greek yogurt\", \"Log a 30-min walk on rest days\"]}"
-}
-```
+`POST /api/coaching/report` — JSON body fields:
+- `week_start`, `week_end` (date, YYYY-MM-DD)
+- `report_text` (string, uses ALL-CAPS section headers — see format below)
+- `summary_json` (stringified JSON — see fields list below)
 
 ### Report Text Format
 
@@ -468,7 +315,4 @@ DELETE /api/coaching/reports/{id} — Delete a report
 
 ## Troubleshooting
 
-- **Server not responding**: Check if Docker container is running (`docker ps | grep nutritrack`) or if the Python process is active
-- **"No profile set" error**: The user needs to create their profile first (PUT /api/profile)
-- **Calorie goal seems wrong**: Check if exercise has been logged — exercise calories increase the daily goal
-- **Data not showing on dashboard**: The dashboard auto-refreshes every 30 seconds, or the user can manually refresh
+See `onboarding.md` for common issues (server down, no profile, wrong calorie goal, dashboard refresh).

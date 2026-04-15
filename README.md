@@ -45,7 +45,7 @@ Then:
 
 > **"Deploy NutriTrack"**
 
-Done. Your agent clones the repo, runs the deploy script, starts the server, and verifies it's healthy. You never open a terminal, install dependencies, or make a single decision.
+The agent fetches the companion [`onboarding.md`](https://raw.githubusercontent.com/BenZenTuna/Nutritrack/main/onboarding.md) for the one-time setup steps (clone → `./deploy.sh` → health check), runs them, and verifies the server is healthy. You never open a terminal, install dependencies, or make a single decision.
 
 Next, set up your profile by telling your agent:
 
@@ -128,24 +128,38 @@ The installer checks for Python 3.10+, creates a virtual environment, installs d
 
 Set `NUTRITRACK_PORT=9000 ./deploy.sh` to use a custom port.
 
+## Skill Files (for AI agents)
+
+The agent-facing documentation is split into two files so that day-to-day operations stay token-efficient and one-time setup material is loaded only when needed:
+
+| File | When the agent reads it | Contains |
+|------|--------------------------|----------|
+| **[`SKILL.md`](SKILL.md)** | Loaded into every conversation as the operational reference | API endpoints, request/response fields, food/exercise estimation rules, gamification, daily + weekly coaching protocols, response-style guide |
+| **[`onboarding.md`](onboarding.md)** | Loaded once, only when the platform isn't installed yet, the user has no profile, demo seeding is requested, or troubleshooting is needed | Install commands, first-time profile creation, demo data seeding, Mifflin-St Jeor formulas, troubleshooting |
+
+`SKILL.md` contains explicit pointers to `onboarding.md` so the agent fetches it automatically the first time it's needed.
+
+**Install order for a fresh deployment:**
+1. Agent reads `onboarding.md` → clones repo, runs `./deploy.sh`, verifies health
+2. Agent reads `SKILL.md` (already installed as the persistent skill) → handles every subsequent log/query
+
 ## What Happens Behind the Scenes
 
 Here's the full chain when your AI agent installs NutriTrack from one URL:
 
 ```
-You: "Install this skill: https://raw.githubusercontent.com/..."
+You: "Install this skill: https://raw.githubusercontent.com/.../SKILL.md"
  │
- ├─ Agent downloads SKILL.md (one small file via curl)
- │
- ├─ SKILL.md contains EVERYTHING the agent needs:
- │   ├── GitHub repo URL + deploy commands
+ ├─ Agent installs SKILL.md as a permanent skill (operational reference)
  │   ├── Full API reference (every endpoint, every field)
- │   ├── Calorie & macro estimation tables
+ │   ├── Calorie & macro estimation rules
  │   ├── Exercise MET formula + values
  │   ├── Gamification rules (streaks, points, badges)
- │   └── Agent behavior rules
+ │   ├── Daily + weekly coaching protocol
+ │   └── Pointer to onboarding.md for first-time setup
  │
  ├─ You: "Deploy NutriTrack"
+ │   ├─ Agent fetches onboarding.md (one-shot read)
  │   └─ Agent: git clone → ./deploy.sh → server running ✓
  │
  ├─ You: "Set up my profile..."
@@ -156,7 +170,7 @@ You: "Install this skill: https://raw.githubusercontent.com/..."
          └─ Dashboard updates automatically every 30 seconds
 ```
 
-The agent never needs web search. Everything it needs is in that one skill file on disk.
+The agent never needs web search. Operational knowledge lives in `SKILL.md` (always loaded); install/setup knowledge lives in `onboarding.md` (loaded only when needed).
 
 ## Your Data is Safe
 
