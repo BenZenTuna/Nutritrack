@@ -79,7 +79,6 @@ def init_db():
             measured_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         
-        DROP TABLE IF EXISTS often_used_foods;
         CREATE TABLE IF NOT EXISTS often_used_foods (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
