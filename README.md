@@ -16,6 +16,12 @@ The platform runs locally on the user's machine -- no cloud accounts or external
 |----------|--------|--------|
 | ![Overview](docs/screenshots/overview.png) | ![Charts](docs/screenshots/charts.png) | ![Health](docs/screenshots/health.png) |
 
+## Live Demo
+
+See what the dashboard looks like and how an AI agent interacts with it: **[tunas.me/nutritrack-demo](https://tunas.me/nutritrack-demo/)**
+
+> Note: this is a visual-only demo — it shows the UI and agent interaction flow, but the demo page itself is not a working instance. To actually use NutriTrack, follow the [Installation](#installation) steps below.
+
 ## Features
 
 - Calorie and macro tracking with personalized daily goals calculated using the Mifflin-St Jeor equation
